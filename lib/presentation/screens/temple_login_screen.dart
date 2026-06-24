@@ -6,14 +6,14 @@ import 'package:temple_onboarding/presentation/widgets/custom_notification_dialo
 import 'package:temple_onboarding/presentation/screens/ponsoft_member_details_screen.dart';
 import 'package:temple_onboarding/core/api_constants.dart';
 
-class PonsoftLoginScreen extends StatefulWidget {
-  const PonsoftLoginScreen({super.key});
+class TempleLoginScreen extends StatefulWidget {
+  const TempleLoginScreen({super.key});
 
   @override
-  State<PonsoftLoginScreen> createState() => _PonsoftLoginScreenState();
+  State<TempleLoginScreen> createState() => _TempleLoginScreenState();
 }
 
-class _PonsoftLoginScreenState extends State<PonsoftLoginScreen> {
+class _TempleLoginScreenState extends State<TempleLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _identifierController;
   late TextEditingController _passwordController;
@@ -63,7 +63,7 @@ class _PonsoftLoginScreenState extends State<PonsoftLoginScreen> {
         CustomNotificationDialog.show(
           context,
           title: 'Login Error',
-          message: data['detail'] ?? 'Ponsoft Login failed',
+          message: data['detail'] ?? 'Temple Login failed',
           type: NotificationType.error,
         );
       }
@@ -132,7 +132,7 @@ class _PonsoftLoginScreenState extends State<PonsoftLoginScreen> {
                             const Icon(Icons.lock_person_rounded, size: 60, color: Colors.blue),
                             const SizedBox(height: 24),
                             const Text(
-                              'Ponsoft Login',
+                              'Temple Login',
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class _PonsoftLoginScreenState extends State<PonsoftLoginScreen> {
                             const SizedBox(height: 48),
                             _buildTextField(
                               controller: _identifierController,
-                              hint: 'Ponsoft Username/Email',
+                              hint: 'Temple Username/Email',
                               icon: Icons.alternate_email_rounded,
                               validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                             ),
@@ -177,7 +177,7 @@ class _PonsoftLoginScreenState extends State<PonsoftLoginScreen> {
                                 child: _isLoading
                                     ? const CircularProgressIndicator(color: Colors.white)
                                     : const Text(
-                                        'ACCESS PONSOFT',
+                                        'ACCESS TEMPLE',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                                       ),
                               ),
