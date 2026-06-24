@@ -106,16 +106,16 @@ class ExpandableYearPill extends StatelessWidget {
   }
 }
 
-class PonsoftMemberDetailsScreen extends StatefulWidget {
+class TempleMemberDetailsScreen extends StatefulWidget {
   final String? tableName;
   final String? templeName;
-  const PonsoftMemberDetailsScreen({super.key, this.tableName, this.templeName});
+  const TempleMemberDetailsScreen({super.key, this.tableName, this.templeName});
 
   @override
-  State<PonsoftMemberDetailsScreen> createState() => _PonsoftMemberDetailsScreenState();
+  State<TempleMemberDetailsScreen> createState() => _TempleMemberDetailsScreenState();
 }
 
-class _PonsoftMemberDetailsScreenState extends State<PonsoftMemberDetailsScreen> {
+class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   bool _isLoading = true;
   bool _isUploading = false;
   Map<String, dynamic>? _userData;
@@ -851,8 +851,6 @@ class _PonsoftMemberDetailsScreenState extends State<PonsoftMemberDetailsScreen>
       
       grandTotalAmount += totalPayments;
     }
-    
-    if (total == 0) return const SizedBox();
 
     return Container(
       padding: const EdgeInsets.all(32),
@@ -3729,6 +3727,16 @@ class _PonsoftMemberDetailsScreenState extends State<PonsoftMemberDetailsScreen>
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: DataTable2(
+            empty: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.group_off_outlined, size: 48, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('No members found', style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
             showCheckboxColumn: false,
             dataRowHeight: 70.0,
             columnSpacing: 24.0,

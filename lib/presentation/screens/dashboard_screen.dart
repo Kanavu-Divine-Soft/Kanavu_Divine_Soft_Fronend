@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:temple_onboarding/presentation/screens/login_screen.dart';
-import 'package:temple_onboarding/presentation/screens/ponsoft_member_details_screen.dart';
+import 'package:temple_onboarding/presentation/screens/temple_member_details_screen.dart';
 import 'package:temple_onboarding/presentation/screens/admin_list_screen.dart';
 import 'package:temple_onboarding/presentation/screens/add_admin_screen.dart';
 import 'package:temple_onboarding/core/api_constants.dart';
@@ -650,7 +650,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PonsoftMemberDetailsScreen(
+                builder: (context) => TempleMemberDetailsScreen(
                   tableName: table,
                   templeName: displayTitle,
                 ),
@@ -741,7 +741,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PonsoftMemberDetailsScreen(
+                          builder: (context) => TempleMemberDetailsScreen(
                             tableName: table,
                             templeName: displayTitle,
                           ),
@@ -826,7 +826,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PonsoftMemberDetailsScreen(
+                        builder: (context) => TempleMemberDetailsScreen(
                           tableName: table,
                           templeName: displayTitle,
                         ),

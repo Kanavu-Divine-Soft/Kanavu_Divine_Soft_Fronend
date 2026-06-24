@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_onboarding/presentation/widgets/custom_notification_dialog.dart';
-import 'package:temple_onboarding/presentation/screens/ponsoft_member_details_screen.dart';
+import 'package:temple_onboarding/presentation/screens/temple_member_details_screen.dart';
 import 'package:temple_onboarding/core/api_constants.dart';
 
 class TempleLoginScreen extends StatefulWidget {
@@ -56,7 +56,7 @@ class _TempleLoginScreenState extends State<TempleLoginScreen> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const PonsoftMemberDetailsScreen()),
+          MaterialPageRoute(builder: (context) => const TempleMemberDetailsScreen()),
         );
       } else {
         if (!mounted) return;

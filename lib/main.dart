@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:temple_onboarding/presentation/screens/login_screen.dart';
 import 'package:temple_onboarding/presentation/screens/dashboard_screen.dart';
-import 'package:temple_onboarding/presentation/screens/ponsoft_member_details_screen.dart';
+import 'package:temple_onboarding/presentation/screens/temple_member_details_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
     if (userData!['role'] == 'Super Admin') {
       return DashboardScreen(userData: userData!);
     } else {
-      return const PonsoftMemberDetailsScreen();
+      return const TempleMemberDetailsScreen();
     }
   }
 }
