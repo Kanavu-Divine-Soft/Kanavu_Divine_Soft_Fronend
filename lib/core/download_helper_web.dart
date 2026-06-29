@@ -2,7 +2,9 @@ import 'dart:html' as html;
 import 'dart:convert';
 
 void downloadCsv(String filename, String content) {
-  final bytes = utf8.encode(content);
+  // Add UTF-8 BOM (\uFEFF) so Excel opens and saves the file with UTF-8 encoding
+  // to prevent Unicode (e.g. Tamil) character corruption.
+  final bytes = utf8.encode('\uFEFF$content');
   final blob = html.Blob([bytes]);
   final url = html.Url.createObjectUrlFromBlob(blob);
   final anchor = html.document.createElement('a') as html.AnchorElement

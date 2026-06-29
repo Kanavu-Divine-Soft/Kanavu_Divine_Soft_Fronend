@@ -133,12 +133,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ),
 
                                         // Right Actions
-                                        Wrap(
-                                          spacing: 16,
-                                          runSpacing: 16,
-                                          crossAxisAlignment: WrapCrossAlignment.center,
-                                          children: [
-                                             if (widget.userData['role'] == 'Super Admin')
+                                        Container(
+                                          width: MediaQuery.of(context).size.width < 600 ? MediaQuery.of(context).size.width - 48 : null,
+                                          alignment: Alignment.centerRight,
+                                          child: Wrap(
+                                            spacing: 16,
+                                            runSpacing: 16,
+                                            alignment: WrapAlignment.end,
+                                            crossAxisAlignment: WrapCrossAlignment.center,
+                                            children: [
+                                               if (widget.userData['role'] == 'Super Admin')
                                               ElevatedButton.icon(
                                                 onPressed: () async {
                                                   final result = await Navigator.push(
@@ -187,6 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                             ),
                                           ],
+                                        ),
                                         ),
                                       ],
                                     ),
@@ -498,7 +503,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 350,
+              maxCrossAxisExtent: 500,
               crossAxisSpacing: 24,
               mainAxisSpacing: 24,
               mainAxisExtent: 170,
@@ -517,7 +522,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 350,
+              maxCrossAxisExtent: 500,
               crossAxisSpacing: 24,
               mainAxisSpacing: 24,
               mainAxisExtent: 170,

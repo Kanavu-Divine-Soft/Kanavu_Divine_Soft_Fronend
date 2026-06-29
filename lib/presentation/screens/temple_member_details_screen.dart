@@ -265,7 +265,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   }
 
   void _downloadSampleFormat() {
-    const String csvContent = 'Code,Name,Mobile,Father\'s Name,Email,Address,Address-2,Address-3,Address-4,City,District,State,Country,Pincode,Sex,VIP,Last Paid,Payment 1,Payment 2,Payment 3,Language\n999999,John Doe,9876543210,Father Name,john@example.com,Address Line 1,Address Line 2,Address Line 3,Address Line 4,Chennai,Chennai,Tamil Nadu,India,600001,Male,No,2024,500,0,0,English';
+    const String csvContent = 'Code,Name,Mobile,Father\'s Name,Email,Address,Address-2,Address-3,Address-4,City,District,State,Country,Pincode,Gender,VIP,Language\n999999,John Doe,9876543210,Father Name,john@example.com,Address Line 1,Address Line 2,Address Line 3,Address Line 4,Chennai,Chennai,Tamil Nadu,India,600001,Male,No,English';
     downloadCsv('bulk_upload_sample.csv', csvContent);
   }
 
@@ -298,7 +298,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              child: Text('Cancel', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -554,7 +554,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
         toolbarHeight: 85,
-        leadingWidth: 120,
+        leadingWidth: 160,
         title: LayoutBuilder(
           builder: (context, constraints) {
             final bool isMobile = MediaQuery.of(context).size.width < 800;
@@ -586,21 +586,31 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: _userData?['role'] == 'Super Admin' 
-          ? IconButton(
-              icon: Image.asset('assets/images/kanavu-logo-1.png', height: 80),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => DashboardScreen(userData: _userData!)),
-                );
-              },
-              tooltip: 'Go to Dashboard',
-            )
-          : Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 4.0, bottom: 4.0),
-              child: Image.asset('assets/images/kanavu-logo-1.png', height: 80),
+        leading: Row(
+          children: [
+            const SizedBox(width: 8),
+            if (_userData?['role'] == 'Super Admin')
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                tooltip: 'Back to Dashboard',
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => DashboardScreen(userData: _userData!)),
+                  );
+                },
+              )
+            else
+              const SizedBox(width: 48),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Image.asset('assets/images/kanavu-logo-1.png', height: 80, fit: BoxFit.contain),
+              ),
             ),
+            const SizedBox(width: 8),
+          ],
+        ),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           Builder(
@@ -739,6 +749,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
+
+                  // View Events Button
+                  TextButton.icon(
+                    onPressed: _showViewEventsDialog,
+                    icon: const Icon(Icons.list_alt, color: Color(0xFF3B82F6), size: 18),
+                    label: const Text(
+                      'View Events',
+                      style: TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
 
                   // Add Event for All Button
                   TextButton.icon(
@@ -1121,13 +1142,389 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       ),
     );
   }
+  List<Map<String, String>> _getAllEvents() {
+    List<Map<String, String>> allEvents = [];
+    Set<String> seenEventNames = {};
+    for (var m in _allMembers) {
+      if (m['Payments'] != null) {
+        List<dynamic> payments = [];
+        if (m['Payments'] is String) {
+          try { payments = jsonDecode(m['Payments']); } catch (_) {}
+        } else if (m['Payments'] is List) {
+          payments = m['Payments'];
+        }
+        for (var p in payments) {
+          String evtName = p['event_name']?.toString() ?? '';
+          if (evtName.isNotEmpty && !seenEventNames.contains(evtName)) {
+            seenEventNames.add(evtName);
+            allEvents.add({
+              'event_name': evtName,
+              'from_date': p['from_date']?.toString() ?? '',
+              'to_date': p['to_date']?.toString() ?? '',
+              'amount': p['amount']?.toString() ?? '0.00',
+            });
+          }
+        }
+      }
+    }
+    return allEvents;
+  }
+
+  void _showViewEventsDialog() {
+    final allEvents = _getAllEvents();
+    String _filter = 'All'; // 'All', 'Current', 'Completed'
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final now = DateTime.now();
+            final today = DateTime(now.year, now.month, now.day);
+            
+            List<Map<String, String>> displayedEvents = allEvents.where((evt) {
+              if (_filter == 'All') return true;
+              
+              bool isCompleted = false;
+              try {
+                final parts = evt['to_date'].toString().split('/');
+                if (parts.length == 3) {
+                  DateTime tD = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                  if (tD.isBefore(today)) isCompleted = true;
+                }
+              } catch (_) {}
+              
+              if (_filter == 'Completed') return isCompleted;
+              return !isCompleted;
+            }).toList();
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Container(
+                width: 600,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'All Events',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF8B0000)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.black54),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        ChoiceChip(
+                          label: const Text('All'),
+                          selected: _filter == 'All',
+                          onSelected: (val) => setDialogState(() => _filter = 'All'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          label: const Text('Current Event'),
+                          selected: _filter == 'Current',
+                          onSelected: (val) => setDialogState(() => _filter = 'Current'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          label: const Text('Completed Event'),
+                          selected: _filter == 'Completed',
+                          onSelected: (val) => setDialogState(() => _filter = 'Completed'),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    if (displayedEvents.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(child: Text('No events found.', style: TextStyle(color: Colors.black54))),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: displayedEvents.length,
+                          separatorBuilder: (context, index) => const Divider(),
+                          itemBuilder: (context, index) {
+                            final evt = displayedEvents[index];
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(evt['event_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text('From: ${evt['from_date']}  To: ${evt['to_date']}'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('₹${evt['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                                  const SizedBox(width: 12),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _showEditEventForAllDialog(evt);
+                                    },
+                                  )
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditEventForAllDialog(Map<String, String> event) {
+    final _dialogFormKey = GlobalKey<FormState>();
+    final _amountController = TextEditingController(text: event['amount']);
+    final _eventNameController = TextEditingController(text: event['event_name']);
+    final _fromDateController = TextEditingController(text: event['from_date']);
+    final _toDateController = TextEditingController(text: event['to_date']);
+    final _yearController = TextEditingController(text: event['year'] ?? DateTime.now().year.toString());
+    bool _isSaving = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final bool isMobile = MediaQuery.of(context).size.width < 600;
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(isMobile ? 0 : 20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: isMobile ? double.infinity : 500,
+                    height: isMobile ? double.infinity : null,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(isMobile ? 0 : 20),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Form(
+                      key: _dialogFormKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Edit Event for All Members',
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF8B0000)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _eventNameController,
+                            maxLength: 254,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+                            decoration: const InputDecoration(labelText: 'Event Name', border: OutlineInputBorder(), isDense: true),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return 'Required';
+                              if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(v)) return 'Only letters and spaces allowed';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _fromDateController,
+                                  decoration: const InputDecoration(labelText: 'From Date', border: OutlineInputBorder(), isDense: true, suffixIcon: Icon(Icons.calendar_today, size: 16)),
+                                  readOnly: true,
+                                  onTap: () async {
+                                    final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                                    if (date != null) {
+                                      _fromDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                    }
+                                  },
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _toDateController,
+                                  decoration: const InputDecoration(labelText: 'To Date', border: OutlineInputBorder(), isDense: true, suffixIcon: Icon(Icons.calendar_today, size: 16)),
+                                  readOnly: true,
+                                  onTap: () async {
+                                    final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                                    if (date != null) {
+                                      _toDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                    }
+                                  },
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  value: _yearController.text.isEmpty ? DateTime.now().year.toString() : _yearController.text,
+                                  decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), isDense: true),
+                                  items: List.generate(20, (index) => (DateTime.now().year - 10 + index).toString())
+                                      .map((String year) => DropdownMenuItem<String>(value: year, child: Text(year)))
+                                      .toList(),
+                                  onChanged: (String? newValue) {
+                                    if (newValue != null) {
+                                      _yearController.text = newValue;
+                                    }
+                                  },
+                                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _amountController,
+                                  decoration: const InputDecoration(labelText: 'Amount', border: OutlineInputBorder(), isDense: true),
+                                  keyboardType: TextInputType.number,
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 45,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFCC0000),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              onPressed: _isSaving
+                                  ? null
+                                  : () async {
+                                      if (!_dialogFormKey.currentState!.validate()) return;
+                                      setDialogState(() => _isSaving = true);
+                                      try {
+                                        String tableName = widget.tableName ?? 'ponsoft_members';
+                                        if (widget.tableName == null) {
+                                          final prefs = await SharedPreferences.getInstance();
+                                          final String? dataStr = prefs.getString('user_data');
+                                          if (dataStr != null) {
+                                            final userData = jsonDecode(dataStr);
+                                            tableName = userData['assigned_table'] ?? 'ponsoft_members';
+                                          }
+                                        }
+
+                                        final response = await http.put(
+                                          Uri.parse('${ApiConstants.baseUrl}/api/ponsoft/members/update-event-all?table=$tableName'),
+                                          headers: {'Content-Type': 'application/json'},
+                                          body: jsonEncode({
+                                            'old_event_name': event['event_name'],
+                                            'amount': double.parse(_amountController.text.trim()),
+                                            'event_name': _eventNameController.text.trim().isEmpty ? null : _eventNameController.text.trim(),
+                                            'from_date': _fromDateController.text.trim().isEmpty ? null : _fromDateController.text.trim(),
+                                            'to_date': _toDateController.text.trim().isEmpty ? null : _toDateController.text.trim(),
+                                            'year': _yearController.text.trim().isEmpty ? null : _yearController.text.trim(),
+                                            'status': 'Unpaid',
+                                          }),
+                                        );
+
+                                        if (response.statusCode == 200) {
+                                          if (!context.mounted) return;
+                                          Navigator.pop(context);
+                                          CustomNotificationDialog.show(
+                                            context,
+                                            type: NotificationType.success,
+                                            title: 'Success',
+                                            message: 'Event updated for all members successfully!',
+                                          );
+                                          _fetchMembers();
+                                        } else {
+                                          final resData = jsonDecode(response.body);
+                                          if (!context.mounted) return;
+                                          CustomNotificationDialog.show(
+                                            context,
+                                            type: NotificationType.error,
+                                            title: 'Error',
+                                            message: resData['detail'] ?? 'Failed to update event',
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        CustomNotificationDialog.show(
+                                          context,
+                                          type: NotificationType.error,
+                                          title: 'Error',
+                                          message: 'Error: $e',
+                                        );
+                                      } finally {
+                                        if (context.mounted) {
+                                          setDialogState(() => _isSaving = false);
+                                        }
+                                      }
+                                    },
+                              child: _isSaving
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('Save Event', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showAddEventForAllDialog() {
     final _dialogFormKey = GlobalKey<FormState>();
     final _amountController = TextEditingController(text: '0.00');
     final _eventNameController = TextEditingController();
     final _fromDateController = TextEditingController();
     final _toDateController = TextEditingController();
-    final _yearController = TextEditingController();
+    final _yearController = TextEditingController(text: DateTime.now().year.toString());
     bool _isSaving = false;
 
     showDialog(
@@ -1182,6 +1579,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           const SizedBox(height: 24),
                           TextFormField(
                             controller: _eventNameController,
+                            maxLength: 254,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
                             decoration: InputDecoration(
                               labelText: 'Event Name',
                               prefixIcon: const Icon(Icons.event, color: Color(0xFFE40000)),
@@ -1189,6 +1589,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               fillColor: const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return 'Required';
+                              if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(v)) return 'Only letters and spaces allowed';
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -1215,6 +1620,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                     fillColor: const Color(0xFFF8FAFC),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -1240,13 +1646,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                     fillColor: const Color(0xFFF8FAFC),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _yearController,
+                          DropdownButtonFormField<String>(
+                            value: _yearController.text.isEmpty ? DateTime.now().year.toString() : _yearController.text,
                             decoration: InputDecoration(
                               labelText: 'Event Year',
                               prefixIcon: const Icon(Icons.calendar_month, color: Color(0xFFE40000)),
@@ -1254,6 +1661,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               fillColor: const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
+                            items: List.generate(20, (index) => (DateTime.now().year - 10 + index).toString())
+                                .map((String year) => DropdownMenuItem<String>(value: year, child: Text(year)))
+                                .toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                _yearController.text = newValue;
+                              }
+                            },
+                            validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -1284,7 +1700,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             children: [
                               TextButton(
                                 onPressed: _isSaving ? null : () => Navigator.pop(context),
-                                child: const Text('Cancel'),
+                                child: Text('Cancel'),
                               ),
                               const SizedBox(width: 16),
                               ElevatedButton(
@@ -1354,7 +1770,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 ),
                                 child: _isSaving
                                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                    : const Text('Add Event', style: TextStyle(color: Colors.white)),
+                                    : Text('Add Event', style: TextStyle(color: Colors.white)),
                               ),
                             ],
                           ),
@@ -1371,8 +1787,53 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     );
   }
 
+  List<Map<String, String>> _getActiveEvents() {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    List<Map<String, String>> activeEvents = [];
+    Set<String> seenEventNames = {};
+    for (var m in _allMembers) {
+      if (m['Payments'] != null) {
+        List<dynamic> payments = [];
+        if (m['Payments'] is String) {
+          try { payments = jsonDecode(m['Payments']); } catch (_) {}
+        } else if (m['Payments'] is List) {
+          payments = m['Payments'];
+        }
+        for (var p in payments) {
+          if (p['to_date'] != null && p['to_date'].toString().isNotEmpty) {
+            try {
+              final parts = p['to_date'].toString().split('/');
+              if (parts.length == 3) {
+                DateTime tD = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                if (tD.isAfter(today) || tD.isAtSameMomentAs(today)) {
+                  String evtName = p['event_name']?.toString() ?? '';
+                  if (evtName.isNotEmpty && !seenEventNames.contains(evtName)) {
+                    seenEventNames.add(evtName);
+                    activeEvents.add({
+                      'event_name': evtName,
+                      'from_date': p['from_date']?.toString() ?? '',
+                      'to_date': p['to_date']?.toString() ?? '',
+                      'amount': p['amount']?.toString() ?? '0.00',
+                    });
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    }
+    return activeEvents;
+  }
+
   void _showAddMemberDialog() {
+    final _personalIdentityKey = GlobalKey();
+    final _contactInfoKey = GlobalKey();
+    final _addressDetailsKey = GlobalKey();
+    final _eventsKey = GlobalKey();
     final _dialogFormKey = GlobalKey<FormState>();
+    final _dialogScrollController = ScrollController();
     final _addCodeController = TextEditingController();
     final _addNameController = TextEditingController();
     final _addFatherNameController = TextEditingController();
@@ -1384,19 +1845,30 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     final _addAddress4Controller = TextEditingController();
     final _addCityController = TextEditingController();
     final _addDistrictController = TextEditingController();
-    final _addStateController = TextEditingController();
+    final _addStateController = TextEditingController(text: 'Tamil Nadu');
     final _addCountryController = TextEditingController(text: 'India');
     final _addPincodeController = TextEditingController();
-    final List<Map<String, TextEditingController>> _paymentControllers = [
-      {
-        'amount': TextEditingController(text: '0.00'),
-        'event_name': TextEditingController(),
-        'from_date': TextEditingController(),
-        'to_date': TextEditingController(),
-        'year': TextEditingController(),
-        'status': TextEditingController(text: 'Unpaid'),
-      }
-    ];
+    final activeEvents = _getActiveEvents();
+
+    final List<Map<String, TextEditingController>> _paymentControllers = activeEvents.isEmpty 
+        ? [
+            {
+              'amount': TextEditingController(text: '0.00'),
+              'event_name': TextEditingController(text: ''),
+              'from_date': TextEditingController(text: ''),
+              'to_date': TextEditingController(text: ''),
+              'year': TextEditingController(text: DateTime.now().year.toString()),
+              'status': TextEditingController(text: 'Unpaid'),
+            }
+          ]
+        : activeEvents.map((ae) => {
+              'amount': TextEditingController(text: ae['amount']),
+              'event_name': TextEditingController(text: ae['event_name']),
+              'from_date': TextEditingController(text: ae['from_date']),
+              'to_date': TextEditingController(text: ae['to_date']),
+              'year': TextEditingController(text: DateTime.now().year.toString()),
+              'status': TextEditingController(text: 'Unpaid'),
+            }).toList();
 
     String _dialogSex = 'Male';
     String _dialogVip = 'No';
@@ -1467,11 +1939,50 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildDialogHeader(context, 'Add New ${_getRawTempleName()} Member'.replaceAll('  ', ' ').trim(), _dialogLanguage, (lang) {
-                          setDialogState(() => _dialogLanguage = lang);
+                        _buildDialogHeader(context, _translate('Add New ${_getRawTempleName()} Member'.replaceAll('  ', ' ').trim(), _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null), _dialogLanguage, (lang) {
+                          if (_dialogLanguage != lang) {
+                            _addNameController.clear();
+                            _addFatherNameController.clear();
+                            _addMobileController.clear();
+                            _addEmailController.clear();
+                            _addAddress1Controller.clear();
+                            _addAddress2Controller.clear();
+                            _addAddress3Controller.clear();
+                            _addAddress4Controller.clear();
+                            _addCityController.clear();
+                            _addDistrictController.clear();
+                            _addPincodeController.clear();
+                            _addStateController.text = 'Tamil Nadu';
+                            _addCountryController.text = 'India';
+                            _paymentControllers.clear();
+                            final activeEvents = _getActiveEvents();
+                            if (activeEvents.isEmpty) {
+                              _paymentControllers.add({
+                                'amount': TextEditingController(text: '0.00'),
+                                'event_name': TextEditingController(text: ''),
+                                'from_date': TextEditingController(text: ''),
+                                'to_date': TextEditingController(text: ''),
+                                'year': TextEditingController(text: DateTime.now().year.toString()),
+                                'status': TextEditingController(text: 'Unpaid'),
+                              });
+                            } else {
+                              for (var ae in activeEvents) {
+                                _paymentControllers.add({
+                                  'amount': TextEditingController(text: ae['amount']),
+                                  'event_name': TextEditingController(text: ae['event_name']),
+                                  'from_date': TextEditingController(text: ae['from_date']),
+                                  'to_date': TextEditingController(text: ae['to_date']),
+                                  'year': TextEditingController(text: DateTime.now().year.toString()),
+                                  'status': TextEditingController(text: 'Unpaid'),
+                                });
+                              }
+                            }
+                            setDialogState(() => _dialogLanguage = lang);
+                          }
                         }),
                         Expanded(
                           child: SingleChildScrollView(
+                            controller: _dialogScrollController,
                             padding: const EdgeInsets.all(24),
                             child: Form(
                               key: _dialogFormKey,
@@ -1498,16 +2009,53 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                      _dialogVip, (vip) => setDialogState(() => _dialogVip = vip),
                                      _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null,
                                      dialogCountryCode: _dialogCountryCode,
-                                     onCountryCodeChanged: (code) => setDialogState(() => _dialogCountryCode = code),
+                                     onCountryCodeChanged: (code) {
+                                      setDialogState(() {
+                                        _dialogCountryCode = code;
+                                        try {
+                                          final c = intl_country.countries.firstWhere((x) => x.code == code);
+                                          _addCountryController.text = c.name;
+                                        } catch (_) {}
+                                      });
+                                    },
                                      paymentControllers: _paymentControllers,
                                     onAddPayment: () {
+                                      if (_paymentControllers.isNotEmpty) {
+                                        final last = _paymentControllers.last;
+                                        final eventName = last['event_name']?.text.trim() ?? '';
+                                        final fromDate = last['from_date']?.text.trim() ?? '';
+                                        final toDate = last['to_date']?.text.trim() ?? '';
+                                        final amount = last['amount']?.text.trim() ?? '';
+                                        bool isDateValid = true;
+                                        if (fromDate.isNotEmpty && toDate.isNotEmpty) {
+                                          try {
+                                            final fParts = fromDate.split('/');
+                                            final tParts = toDate.split('/');
+                                            if (fParts.length == 3 && tParts.length == 3) {
+                                              final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                              final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                              if (tD.isBefore(fD)) isDateValid = false;
+                                            }
+                                          } catch (_) {}
+                                        }
+                                        if (eventName.isEmpty || fromDate.isEmpty || toDate.isEmpty || amount.isEmpty || amount == '0' || amount == '0.00' || !isDateValid) {
+                                          CustomNotificationDialog.show(
+                                            context,
+                                            title: _translate('Validation Error', _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null),
+                                            message: _translate(!isDateValid ? 'To Date cannot be before From Date.' : 'Please fill all the current event details before adding a new one.', _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null),
+                                            type: NotificationType.error,
+                                          );
+                                          return;
+                                        }
+                                      }
                                       setDialogState(() {
                                         _paymentControllers.add({
-                                          'amount': TextEditingController(text: '0.00'),
-                                          'event_name': TextEditingController(),
-                                          'from_date': TextEditingController(),
-                                          'to_date': TextEditingController(),
-                                          'year': TextEditingController(),
+                                          'amount': TextEditingController(text: ''),
+                                          'event_name': TextEditingController(text: ''),
+                                          'from_date': TextEditingController(text: ''),
+                                          'to_date': TextEditingController(text: ''),
+                                          'year': TextEditingController(text: DateTime.now().year.toString()),
+                                          'status': TextEditingController(text: 'Unpaid'),
                                         });
                                       });
                                     },
@@ -1522,6 +2070,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         _paymentControllers.removeAt(index);
                                       });
                                     },
+                                    personalIdentityKey: _personalIdentityKey,
+                                    contactInfoKey: _contactInfoKey,
+                                    addressDetailsKey: _addressDetailsKey,
+                                    eventsKey: _eventsKey,
                                   ),
                                   
                                   const SizedBox(height: 24),
@@ -1530,8 +2082,36 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             ),
                           ),
                         ),
-                        _buildDialogActions(context, _isSaving, () async {
-                          if (!_dialogFormKey.currentState!.validate()) return;
+                        _buildDialogActions(context, _isSaving, fontFamily: _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null, () async {
+                          if (!_dialogFormKey.currentState!.validate()) {
+                            BuildContext? targetContext;
+                            
+                            if (_addNameController.text.trim().isEmpty) {
+                              targetContext = _personalIdentityKey.currentContext;
+                            } else if (_addMobileController.text.replaceAll(' ', '').trim().isEmpty || _addMobileController.text.replaceAll(' ', '').trim().length != 10) {
+                              targetContext = _contactInfoKey.currentContext;
+                            } else if (_addEmailController.text.trim().isNotEmpty && !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_addEmailController.text.trim())) {
+                              targetContext = _contactInfoKey.currentContext;
+                            } else if (_addAddress1Controller.text.trim().isEmpty || 
+                                       _addCityController.text.trim().isEmpty || 
+                                       _addDistrictController.text.trim().isEmpty || 
+                                       _addStateController.text.trim().isEmpty || 
+                                       _addCountryController.text.trim().isEmpty || 
+                                       _addPincodeController.text.trim().isEmpty) {
+                              targetContext = _addressDetailsKey.currentContext;
+                            } else {
+                              targetContext = _eventsKey.currentContext;
+                            }
+
+                            if (targetContext != null) {
+                              Scrollable.ensureVisible(
+                                targetContext,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                              );
+                            }
+                            return;
+                          }
                           
                           setDialogState(() => _isSaving = true);
                           
@@ -1629,7 +2209,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -1728,7 +2308,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
@@ -1796,7 +2376,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -1931,7 +2511,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           children: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel'),
+                              child: Text('Cancel'),
                             ),
                             const SizedBox(width: 16),
                             ElevatedButton.icon(
@@ -2287,7 +2867,12 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
 
   void _showEditMemberDialog(Map<String, dynamic> member) {
+    final _personalIdentityKey = GlobalKey();
+    final _contactInfoKey = GlobalKey();
+    final _addressDetailsKey = GlobalKey();
+    final _eventsKey = GlobalKey();
     final _dialogFormKey = GlobalKey<FormState>();
+    final _dialogScrollController = ScrollController();
     final _addCodeController = TextEditingController(text: member['Code']?.toString() ?? '');
     final _addNameController = TextEditingController(text: member['Name']?.toString() ?? '');
     final _addFatherNameController = TextEditingController(text: member['Father_Name']?.toString() ?? '');
@@ -2298,15 +2883,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     }
     final _addMobileController = TextEditingController(text: initialMobile);
     final _addEmailController = TextEditingController(text: member['Email']?.toString() ?? '');
-    final _addAddress1Controller = TextEditingController(text: member['Address_1']?.toString() ?? '');
-    final _addAddress2Controller = TextEditingController(text: member['Address_2']?.toString() ?? '');
-    final _addAddress3Controller = TextEditingController(text: member['Address_3']?.toString() ?? '');
-    final _addAddress4Controller = TextEditingController(text: member['Address_4']?.toString() ?? '');
-    final _addCityController = TextEditingController(text: member['City']?.toString() ?? '');
-    final _addDistrictController = TextEditingController(text: member['District']?.toString() ?? '');
-    final _addStateController = TextEditingController(text: member['State']?.toString() ?? '');
-    final _addCountryController = TextEditingController(text: (member['Country']?.toString() ?? '').isEmpty ? 'India' : member['Country']!.toString());
-    final _addPincodeController = TextEditingController(text: member['Pincode']?.toString() ?? '');
+    final _addAddress1Controller = TextEditingController(text: (member['Address_1'] ?? member['address_1'])?.toString() ?? '');
+    final _addAddress2Controller = TextEditingController(text: (member['Address_2'] ?? member['address_2'])?.toString() ?? '');
+    final _addAddress3Controller = TextEditingController(text: (member['Address_3'] ?? member['address_3'])?.toString() ?? '');
+    final _addAddress4Controller = TextEditingController(text: (member['Address_4'] ?? member['address_4'])?.toString() ?? '');
+    final _addCityController = TextEditingController(text: (member['City'] ?? member['city'])?.toString() ?? '');
+    final _addDistrictController = TextEditingController(text: (member['District'] ?? member['district'])?.toString() ?? '');
+    final _addStateController = TextEditingController(text: ((member['State'] ?? member['state'])?.toString() ?? '').isEmpty ? 'Tamil Nadu' : (member['State'] ?? member['state'])!.toString());
+    final _addCountryController = TextEditingController(text: ((member['Country'] ?? member['country'])?.toString() ?? '').isEmpty ? 'India' : (member['Country'] ?? member['country'])!.toString());
+    final _addPincodeController = TextEditingController(text: (member['Pincode'] ?? member['pincode'])?.toString() ?? '');
     List<dynamic> existingPayments = [];
     if (member['Payments'] != null) {
       if (member['Payments'] is String) {
@@ -2323,7 +2908,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             'event_name': TextEditingController(text: p['event_name']?.toString() ?? ''),
             'from_date': TextEditingController(text: p['from_date']?.toString() ?? ''),
             'to_date': TextEditingController(text: p['to_date']?.toString() ?? ''),
-            'year': TextEditingController(text: p['year']?.toString() ?? ''),
+            'year': TextEditingController(text: p['year']?.toString() ?? DateTime.now().year.toString()),
             'status': TextEditingController(text: p['status']?.toString() ?? 'Unpaid'),
           }).toList()
         : [
@@ -2332,7 +2917,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               'event_name': TextEditingController(),
               'from_date': TextEditingController(),
               'to_date': TextEditingController(),
-              'year': TextEditingController(),
+              'year': TextEditingController(text: DateTime.now().year.toString()),
               'status': TextEditingController(text: 'Unpaid'),
             }
           ];
@@ -2346,14 +2931,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     String _dialogLanguage = (member['Language'] == 'Tamil' || member['Language'] == 'Sun Tommy') ? 'Sun Tommy' : 'English';
     String _dialogCountryCode = 'IN';
     {
-      String c = (member['Country'] ?? '').toString().trim().toLowerCase();
-      if (c == 'singapore') _dialogCountryCode = 'SG';
-      else if (c == 'malaysia') _dialogCountryCode = 'MY';
-      else if (c == 'sri lanka') _dialogCountryCode = 'LK';
-      else if (c == 'uae' || c == 'united arab emirates') _dialogCountryCode = 'AE';
-      else if (c == 'uk' || c == 'united kingdom') _dialogCountryCode = 'GB';
-      else if (c == 'usa' || c == 'united states') _dialogCountryCode = 'US';
-      else if (c == 'australia') _dialogCountryCode = 'AU';
+      String cName = ((member['Country'] ?? member['country']) ?? '').toString().trim().toLowerCase();
+      if (cName.isNotEmpty) {
+        try {
+          final found = intl_country.countries.firstWhere((x) => x.name.toLowerCase() == cName);
+          _dialogCountryCode = found.code;
+        } catch (_) {
+          if (cName == 'uk' || cName == 'united kingdom') _dialogCountryCode = 'GB';
+          else if (cName == 'usa' || cName == 'united states') _dialogCountryCode = 'US';
+          else if (cName == 'uae' || cName == 'united arab emirates') _dialogCountryCode = 'AE';
+        }
+      }
     }
     
 
@@ -2369,6 +2957,24 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            void _handleLangChange(String lang) {
+              if (_dialogLanguage != lang) {
+                _addNameController.clear();
+                _addFatherNameController.clear();
+                _addMobileController.clear();
+                _addEmailController.clear();
+                _addAddress1Controller.clear();
+                _addAddress2Controller.clear();
+                _addAddress3Controller.clear();
+                _addAddress4Controller.clear();
+                _addCityController.clear();
+                _addDistrictController.clear();
+                _addPincodeController.clear();
+                _addStateController.text = 'Tamil Nadu';
+                _addCountryController.text = 'India';
+                setDialogState(() => _dialogLanguage = lang);
+              }
+            }
             return Dialog(
               backgroundColor: Colors.transparent,
               child: ClipRRect(
@@ -2452,8 +3058,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => setDialogState(() => _dialogLanguage = 'English') : null),
-                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => setDialogState(() => _dialogLanguage = 'Sun Tommy') : null),
+                                                _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
+                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -2502,8 +3108,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                             color: Colors.white.withOpacity(0.15),
                                             child: Row(
                                               children: [
-                                                _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => setDialogState(() => _dialogLanguage = 'English') : null),
-                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => setDialogState(() => _dialogLanguage = 'Sun Tommy') : null),
+                                                _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
+                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -2520,6 +3126,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                         ),
                         Expanded(
                           child: SingleChildScrollView(
+                            controller: _dialogScrollController,
                             padding: const EdgeInsets.all(24),
                             child: Form(
                               key: _dialogFormKey,
@@ -2548,16 +3155,52 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                      isEdit: true,
                                      isEditable: _isEditingEnabled,
                                      dialogCountryCode: _dialogCountryCode,
-                                     onCountryCodeChanged: (code) => setDialogState(() => _dialogCountryCode = code),
+                                     onCountryCodeChanged: (code) {
+                                      setDialogState(() {
+                                        _dialogCountryCode = code;
+                                        try {
+                                          final c = intl_country.countries.firstWhere((x) => x.code == code);
+                                          _addCountryController.text = c.name;
+                                        } catch (_) {}
+                                      });
+                                    },
                                      paymentControllers: _paymentControllers,
                                     onAddPayment: () {
+                                      if (_paymentControllers.isNotEmpty) {
+                                        final last = _paymentControllers.last;
+                                        final eventName = last['event_name']?.text.trim() ?? '';
+                                        final fromDate = last['from_date']?.text.trim() ?? '';
+                                        final toDate = last['to_date']?.text.trim() ?? '';
+                                        final amount = last['amount']?.text.trim() ?? '';
+                                        bool isDateValid = true;
+                                        if (fromDate.isNotEmpty && toDate.isNotEmpty) {
+                                          try {
+                                            final fParts = fromDate.split('/');
+                                            final tParts = toDate.split('/');
+                                            if (fParts.length == 3 && tParts.length == 3) {
+                                              final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                              final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                              if (tD.isBefore(fD)) isDateValid = false;
+                                            }
+                                          } catch (_) {}
+                                        }
+                                        if (eventName.isEmpty || fromDate.isEmpty || toDate.isEmpty || amount.isEmpty || amount == '0' || amount == '0.00' || !isDateValid) {
+                                          CustomNotificationDialog.show(
+                                            context,
+                                            title: _translate('Validation Error', _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null),
+                                            message: _translate(!isDateValid ? 'To Date cannot be before From Date.' : 'Please fill all the current event details before adding a new one.', _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null),
+                                            type: NotificationType.error,
+                                          );
+                                          return;
+                                        }
+                                      }
                                       setDialogState(() {
                                         _paymentControllers.add({
-                                          'amount': TextEditingController(text: '0.00'),
-                                          'event_name': TextEditingController(),
-                                          'from_date': TextEditingController(),
-                                          'to_date': TextEditingController(),
-                                          'year': TextEditingController(),
+                                          'amount': TextEditingController(text: ''),
+                                          'event_name': TextEditingController(text: ''),
+                                          'from_date': TextEditingController(text: ''),
+                                          'to_date': TextEditingController(text: ''),
+                                          'year': TextEditingController(text: DateTime.now().year.toString()),
                                           'status': TextEditingController(text: 'Unpaid'),
                                         });
                                       });
@@ -2573,6 +3216,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         _paymentControllers.removeAt(index);
                                       });
                                     },
+                                    personalIdentityKey: _personalIdentityKey,
+                                    contactInfoKey: _contactInfoKey,
+                                    addressDetailsKey: _addressDetailsKey,
+                                    eventsKey: _eventsKey,
                                   ),
                                   
                                   const SizedBox(height: 24),
@@ -2581,8 +3228,36 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             ),
                           ),
                         ),
-                        _buildDialogActions(context, _isSaving, () async {
-                          if (!_dialogFormKey.currentState!.validate()) return;
+                        _buildDialogActions(context, _isSaving, fontFamily: _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null, () async {
+                          if (!_dialogFormKey.currentState!.validate()) {
+                            BuildContext? targetContext;
+                            
+                            if (_addNameController.text.trim().isEmpty) {
+                              targetContext = _personalIdentityKey.currentContext;
+                            } else if (_addMobileController.text.replaceAll(' ', '').trim().isEmpty || _addMobileController.text.replaceAll(' ', '').trim().length != 10) {
+                              targetContext = _contactInfoKey.currentContext;
+                            } else if (_addEmailController.text.trim().isNotEmpty && !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_addEmailController.text.trim())) {
+                              targetContext = _contactInfoKey.currentContext;
+                            } else if (_addAddress1Controller.text.trim().isEmpty || 
+                                       _addCityController.text.trim().isEmpty || 
+                                       _addDistrictController.text.trim().isEmpty || 
+                                       _addStateController.text.trim().isEmpty || 
+                                       _addCountryController.text.trim().isEmpty || 
+                                       _addPincodeController.text.trim().isEmpty) {
+                              targetContext = _addressDetailsKey.currentContext;
+                            } else {
+                              targetContext = _eventsKey.currentContext;
+                            }
+
+                            if (targetContext != null) {
+                              Scrollable.ensureVisible(
+                                targetContext,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                              );
+                            }
+                            return;
+                          }
                           
                           setDialogState(() => _isSaving = true);
                           
@@ -2787,8 +3462,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     }
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, {Widget? trailing}) {
+  Widget _buildSectionHeader(String title, IconData icon, {Widget? trailing, String? fontFamily, Key? key}) {
     return Padding(
+      key: key,
       padding: const EdgeInsets.only(top: 24, bottom: 16),
       child: Row(
         children: [
@@ -2803,11 +3479,12 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            title,
-            style: const TextStyle(
+            _translate(title, fontFamily),
+            style: TextStyle(
+              fontFamily: fontFamily,
               fontSize: 17, 
               fontWeight: FontWeight.w700, 
-              color: Color(0xFF1E293B),
+              color: const Color(0xFF1E293B),
               letterSpacing: 0.3,
             ),
           ),
@@ -2841,12 +3518,16 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     List<Map<String, TextEditingController>> paymentControllers = const [],
     VoidCallback? onAddPayment,
     Function(int)? onRemovePayment,
+    GlobalKey? personalIdentityKey,
+    GlobalKey? contactInfoKey,
+    GlobalKey? addressDetailsKey,
+    GlobalKey? eventsKey,
   }) {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Personal Identity', Icons.badge_outlined),
+        _buildSectionHeader('Personal Identity', Icons.badge_outlined, fontFamily: fontFamily, key: personalIdentityKey),
         _buildResponsiveRow(context, [
           if (isEdit)
             _buildDialogTextField(
@@ -2862,7 +3543,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.person,
             fontFamily: fontFamily,
             enabled: isEditable,
-            validator: (v) => v!.isEmpty ? 'Required' : null,
+            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
             maxLength: 254,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
@@ -2872,6 +3553,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.person_outline,
             fontFamily: fontFamily,
             enabled: isEditable,
+            validator: (v) => (v != null && v.isNotEmpty && v.trim().isEmpty) ? _translate('Invalid input', fontFamily) : null,
             maxLength: 254,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
@@ -2892,31 +3574,29 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           const SizedBox(), // Empty spacer
         ]),
 
-        _buildSectionHeader('Contact Information', Icons.contact_phone_outlined),
+        _buildSectionHeader('Contact Information', Icons.contact_phone_outlined, fontFamily: fontFamily, key: contactInfoKey),
         _buildResponsiveRow(context, [
           _CustomMobileNumberField(
             key: ValueKey(dialogCountryCode),
             controller: controllers['mobile']!,
             enabled: isEditable,
             initialCountryCode: dialogCountryCode,
-            onCountryCodeChanged: (code) {
-              if (onCountryCodeChanged != null) {
-                onCountryCodeChanged(code);
-              }
-            },
+            onCountryCodeChanged: onCountryCodeChanged ?? (code) {},
+            fontFamily: fontFamily,
           ),
           _buildDialogTextField(
             controller: controllers['email']!,
-            label: 'Email',
+            label: 'Email *',
             icon: Icons.email,
             maxLength: 254,
             enabled: isEditable,
             validator: (value) {
-              if (value != null && value.isNotEmpty) {
-                final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value);
-                if (!emailValid) {
-                  return 'Please enter a valid email address';
-                }
+              if (value == null || value.trim().isEmpty) {
+                return 'Required';
+              }
+              final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value);
+              if (!emailValid) {
+                return 'Please enter a valid email address';
               }
               return null;
             },
@@ -2924,7 +3604,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           const SizedBox(),
         ]),
 
-        _buildSectionHeader('Address Details', Icons.home_outlined),
+        _buildSectionHeader('Address Details', Icons.home_outlined, fontFamily: fontFamily, key: addressDetailsKey),
         _buildResponsiveRow(context, [
           _buildDialogTextField(
             controller: controllers['addr1']!,
@@ -2932,8 +3612,13 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.home,
             fontFamily: fontFamily,
             enabled: isEditable,
-            validator: (v) => v!.isEmpty ? 'Required' : null,
+            validator: (v) {
+              if (v == null || v.isEmpty) return _translate('Required', fontFamily);
+              if (v.trim().isEmpty) return _translate('Invalid input', fontFamily);
+              return null;
+            },
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
           _buildDialogTextField(
             controller: controllers['addr2']!,
@@ -2941,8 +3626,13 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.home_outlined,
             fontFamily: fontFamily,
             enabled: isEditable,
-            validator: (v) => v!.isEmpty ? 'Required' : null,
+            validator: (v) {
+              if (v == null || v.isEmpty) return _translate('Required', fontFamily);
+              if (v.trim().isEmpty) return _translate('Invalid input', fontFamily);
+              return null;
+            },
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
           _buildDialogTextField(
             controller: controllers['addr3']!,
@@ -2950,7 +3640,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.home_outlined,
             fontFamily: fontFamily,
             enabled: isEditable,
+            validator: (v) => (v != null && v.isNotEmpty && v.trim().isEmpty) ? _translate('Invalid input', fontFamily) : null,
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
         ]),
         _buildResponsiveRow(context, [
@@ -2960,60 +3652,116 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             icon: Icons.home_outlined,
             fontFamily: fontFamily,
             enabled: isEditable,
+            validator: (v) => (v != null && v.isNotEmpty && v.trim().isEmpty) ? _translate('Invalid input', fontFamily) : null,
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
           _buildDialogTextField(
             controller: controllers['city']!,
-            label: 'City',
+            label: 'City *',
             icon: Icons.location_city,
             fontFamily: fontFamily,
             enabled: isEditable,
+            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
           _buildDialogTextField(
             controller: controllers['district']!,
-            label: 'District',
+            label: 'District *',
             icon: Icons.map,
             fontFamily: fontFamily,
             enabled: isEditable,
+            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
             maxLength: 254,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
         ]),
         _buildResponsiveRow(context, [
-          CustomStateSelectField(
-            initialState: controllers['state']!.text,
-            selectedCountry: controllers['country']!.text,
-            enabled: isEditable,
-            onStateSelect: (state) {
-              controllers['state']!.text = state;
-              setDialogState(() {});
+          FormField<String>(
+            initialValue: controllers['state']!.text,
+            validator: (v) => (v == null || v.trim().isEmpty || v == 'Select State') ? _translate('Required', fontFamily) : null,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            builder: (FormFieldState<String> stateField) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomStateSelectField(
+                    initialState: controllers['state']!.text,
+                    selectedCountry: controllers['country']!.text,
+                    enabled: isEditable,
+                    fontFamily: fontFamily,
+                    onStateSelect: (state) {
+                      controllers['state']!.text = state;
+                      stateField.didChange(state);
+                      setDialogState(() {});
+                    },
+                  ),
+                  if (stateField.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 6),
+                      child: Text(
+                        stateField.errorText!,
+                        style: TextStyle(color: const Color(0xFFD32F2F), fontSize: 12),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
-          CustomCountrySelectField(
-            initialCountryCode: dialogCountryCode,
-            enabled: isEditable,
-            onCountrySelect: (code, name) {
-              controllers['country']!.text = name;
-              if (onCountryCodeChanged != null) {
-                onCountryCodeChanged(code);
-              }
-              setDialogState(() {});
+          FormField<String>(
+            initialValue: controllers['country']!.text,
+            validator: (v) => (v == null || v.trim().isEmpty || v == 'Select Country') ? _translate('Required', fontFamily) : null,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            builder: (FormFieldState<String> countryField) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomCountrySelectField(
+                    initialCountryCode: dialogCountryCode,
+                    enabled: isEditable,
+                    fontFamily: fontFamily,
+                    onCountrySelect: (code, name) {
+                      controllers['country']!.text = name;
+                      countryField.didChange(name);
+                      if (onCountryCodeChanged != null) {
+                        onCountryCodeChanged(code);
+                      }
+                      setDialogState(() {});
+                    },
+                  ),
+                  if (countryField.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 6),
+                      child: Text(
+                        countryField.errorText!,
+                        style: TextStyle(color: const Color(0xFFD32F2F), fontSize: 12),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
           _buildDialogTextField(
             controller: controllers['pincode']!,
-            label: 'PinCode',
+            label: 'PinCode *',
             icon: Icons.pin,
             maxLength: 6,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             enabled: isEditable,
+            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
+            fontFamily: fontFamily,
           ),
         ]),
 
         _buildSectionHeader(
           'Events', 
           Icons.event,
+          fontFamily: fontFamily,
+          key: eventsKey,
           trailing: onAddPayment != null && isEditable
               ? InkWell(
                   onTap: onAddPayment,
@@ -3027,10 +3775,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.add, color: Color(0xFFE40000), size: 18),
-                        SizedBox(width: 4),
-                        Text('Add Event', style: TextStyle(color: Color(0xFFE40000), fontSize: 13, fontWeight: FontWeight.bold)),
+                      children: [
+                        const Icon(Icons.add, color: Color(0xFFE40000), size: 18),
+                        const SizedBox(width: 4),
+                        Text(_translate('Add Event', fontFamily), style: TextStyle(fontFamily: fontFamily, color: const Color(0xFFE40000), fontSize: 13, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -3058,14 +3806,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   dataRowMinHeight: 65,
                   dataRowMaxHeight: 65,
                   headingRowColor: WidgetStateProperty.all(const Color(0xFFF9FAFB)),
-                  columns: const [
-                    DataColumn(label: Text('Event Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('From Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('To Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('Year', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('Amount *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                  columns: [
+                    DataColumn(label: Text(_translate('Event Name', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('From Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('To Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('Year', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('Status', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('Amount *', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
+                    DataColumn(label: Text(_translate('Action', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
                   ],
                   rows: [
                     for (int j = 0; j < paymentControllers.length; j++)
@@ -3074,12 +3822,16 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           DataCell(SizedBox(
                             width: 150,
                             child: TextFormField(
-                              controller: paymentControllers[j]['event_name'],
+                              controller: paymentControllers[j]['event_name']!,
+                              enabled: isEditable,
                               style: const TextStyle(fontSize: 13),
                               decoration: tableInputDec,
-                              enabled: isEditable,
-                              maxLength: 254,
-                              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                              validator: (v) {
+                                final p = paymentControllers[j];
+                                bool isActive = p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
+                              },
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                             ),
                           )),
                           DataCell(SizedBox(
@@ -3090,6 +3842,12 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               readOnly: true,
                               decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
                               enabled: isEditable,
+                              validator: (v) {
+                                final p = paymentControllers[j];
+                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
+                              },
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               onTap: isEditable ? () async {
                                 final date = await showDatePicker(
                                   context: context,
@@ -3111,6 +3869,25 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               readOnly: true,
                               decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
                               enabled: isEditable,
+                              validator: (v) {
+                                final p = paymentControllers[j];
+                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                if (isActive && (v == null || v.trim().isEmpty)) return 'Req';
+
+                                if (v != null && v.isNotEmpty && p['from_date']!.text.isNotEmpty) {
+                                  try {
+                                    final fParts = p['from_date']!.text.split('/');
+                                    final tParts = v.split('/');
+                                    if (fParts.length == 3 && tParts.length == 3) {
+                                      final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                      final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                      if (tD.isBefore(fD)) return 'Invalid';
+                                    }
+                                  } catch (_) {}
+                                }
+                                return null;
+                              },
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               onTap: isEditable ? () async {
                                 final date = await showDatePicker(
                                   context: context,
@@ -3125,18 +3902,30 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             ),
                           )),
                           DataCell(SizedBox(
-                            width: 80,
-                            child: TextFormField(
-                              controller: paymentControllers[j]['year'],
-                              style: const TextStyle(fontSize: 13),
-                              decoration: tableInputDec,
-                              enabled: isEditable,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            ),
+                            width: 110,
+                            child: Builder(builder: (context) {
+                              final val = paymentControllers[j]['year']?.text.isNotEmpty == true ? paymentControllers[j]['year']!.text : DateTime.now().year.toString();
+                              final items = List<String>.generate(28, (index) => (2027 - index).toString());
+                              if (!items.contains(val)) items.add(val);
+                              return CustomDropdownSearch(
+                                label: '',
+                                height: 40,
+                                value: val,
+                                borderColor: const Color(0xFFE5E7EB),
+                                dropdownItems: items,
+                                isEnabled: isEditable,
+                                onChanged: isEditable ? (value) {
+                                  if (value != null) {
+                                    setDialogState(() {
+                                      paymentControllers[j]['year']!.text = value;
+                                    });
+                                  }
+                                } : null,
+                              );
+                            }),
                           )),
                           DataCell(SizedBox(
-                            width: 110,
+                            width: 120,
                             child: CustomDropdownSearch(
                               label: '',
                               height: 40,
@@ -3167,7 +3956,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                   paymentControllers[j]['amount']!.clear();
                                 }
                               } : null,
-                              validator: (v) => v!.isEmpty ? 'Req' : null,
+                              validator: (v) {
+                                final p = paymentControllers[j];
+                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty;
+                                return (isActive && (v == null || v.trim().isEmpty || v == '0' || v == '0.00')) ? 'Req' : null;
+                              },
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                             ),
                           )),
@@ -3226,13 +4019,13 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         label: label.endsWith('*') || label.endsWith(' *')
             ? Text.rich(
                 TextSpan(
-                  text: label.replaceAll(' *', '').replaceAll('*', '').trim(),
+                  text: _translate(label.replaceAll(' *', '').replaceAll('*', '').trim(), fontFamily),
                   children: const [
                     TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               )
-            : Text(label),
+            : Text(_translate(label, fontFamily)),
         labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
         prefixIcon: Icon(icon, color: const Color(0xFFE40000), size: 20),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -3279,6 +4072,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       onChanged: onChanged,
       height: 52,
       borderColor: const Color(0xFFE2E8F0),
+      isSearchable: false,
     );
   }
 
@@ -3294,7 +4088,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     );
   }
 
-  Widget _buildDialogActions(BuildContext context, bool isSaving, VoidCallback onSave, {bool isEditable = true}) {
+  Widget _buildDialogActions(BuildContext context, bool isSaving, VoidCallback onSave, {bool isEditable = true, String? fontFamily}) {
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
@@ -3314,10 +4108,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text(
-              'Cancel', 
+            child: Text(
+              _translate('Cancel', fontFamily), 
               style: TextStyle(
-                color: Color(0xFF64748B), 
+                fontFamily: fontFamily,
+                color: const Color(0xFF64748B), 
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
               ),
@@ -3354,9 +4149,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       height: 20,
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : const Text(
-                      'Save Member', 
+                  : Text(
+                      _translate('Save Member', fontFamily), 
                       style: TextStyle(
+                        fontFamily: fontFamily,
                         color: Colors.white, 
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -3869,10 +4665,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
   Widget _buildCombinedAddress(Map<String, dynamic> member, bool isTamil) {
     final List<String> parts = [
-      member['Address_1'],
-      member['Address_2'],
-      member['Address_3'],
-      member['Address_4']
+      member['Address_1'] ?? member['address_1'],
+      member['Address_2'] ?? member['address_2'],
+      member['Address_3'] ?? member['address_3'],
+      member['Address_4'] ?? member['address_4']
     ].where((s) => s != null && s.toString().trim().isNotEmpty).map((s) => s.toString()).toList();
 
     if (parts.isEmpty) return const Text('-');
@@ -4073,6 +4869,7 @@ class _CustomMobileNumberField extends StatefulWidget {
   final bool enabled;
   final String initialCountryCode;
   final Function(String) onCountryCodeChanged;
+  final String? fontFamily;
 
   const _CustomMobileNumberField({
     super.key,
@@ -4080,6 +4877,7 @@ class _CustomMobileNumberField extends StatefulWidget {
     required this.enabled,
     required this.initialCountryCode,
     required this.onCountryCodeChanged,
+    this.fontFamily,
   });
 
   @override
@@ -4093,34 +4891,11 @@ class _CustomMobileNumberFieldState extends State<_CustomMobileNumberField> {
   final LayerLink _layerLink = LayerLink();
   bool _isCountryDropdownOpen = false;
   final FocusNode _focusNode = FocusNode();
-  String? _errorText;
 
   @override
   void initState() {
     super.initState();
     _selectedCountry = intl_country.countries.firstWhere((c) => c.code == widget.initialCountryCode, orElse: () => intl_country.countries.firstWhere((c) => c.code == 'IN'));
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) {
-        _validate();
-      }
-    });
-  }
-
-  void _validate() {
-    final text = widget.controller.text.replaceAll(' ', '').trim();
-    if (text.isNotEmpty && (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength)) {
-      setState(() {
-        if (_selectedCountry.minLength == _selectedCountry.maxLength) {
-          _errorText = 'Enter a valid ${_selectedCountry.maxLength}-digit mobile number';
-        } else {
-          _errorText = 'Enter between ${_selectedCountry.minLength} and ${_selectedCountry.maxLength} digits';
-        }
-      });
-    } else if (_errorText != null) {
-      setState(() {
-        _errorText = null;
-      });
-    }
   }
 
   void _toggleCountryDropdown() {
@@ -4173,10 +4948,10 @@ class _CustomMobileNumberFieldState extends State<_CustomMobileNumberField> {
                   onTap: () {}, // absorb taps
                   child: _CountryDropdownPanel(
                     initialCountry: _selectedCountry,
+                    fontFamily: widget.fontFamily,
                     onSelect: (country) {
                       setState(() => _selectedCountry = country);
                       widget.onCountryCodeChanged(country.code);
-                      _validate();
                       _removeCountryOverlay();
                     },
                   ),
@@ -4214,37 +4989,51 @@ class _CustomMobileNumberFieldState extends State<_CustomMobileNumberField> {
       focusNode: _focusNode,
       controller: widget.controller,
       enabled: widget.enabled,
-      style: const TextStyle(
-        color: Color(0xFF1E293B),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) return _translate('Required', widget.fontFamily);
+        final text = v.replaceAll(' ', '').trim();
+        
+        if (_selectedCountry.code == 'IN') {
+          if (text.length != 10) {
+            return _translate('Enter a valid', widget.fontFamily) + ' 10-' + _translate('digit mobile number', widget.fontFamily);
+          } else if (!RegExp(r'^[6-9]\d{9}$').hasMatch(text)) {
+            return _translate('Invalid Indian mobile number', widget.fontFamily);
+          }
+        } else {
+          final bool isValid = text.length >= _selectedCountry.minLength && text.length <= _selectedCountry.maxLength;
+          if (!isValid) {
+            if (_selectedCountry.minLength == _selectedCountry.maxLength) {
+              return _translate('Enter a valid', widget.fontFamily) + ' ${_selectedCountry.maxLength}-' + _translate('digit mobile number', widget.fontFamily);
+            } else {
+              return _translate('Enter between', widget.fontFamily) + ' ${_selectedCountry.minLength} ' + _translate('and', widget.fontFamily) + ' ${_selectedCountry.maxLength} ' + _translate('digits', widget.fontFamily);
+            }
+          }
+        }
+        return null;
+      },
+      style: TextStyle(
+        color: const Color(0xFF1E293B),
         fontSize: 15,
+        fontFamily: widget.fontFamily,
         fontWeight: FontWeight.w500,
       ),
       keyboardType: TextInputType.phone,
-      onChanged: (value) {
-        if (_errorText != null) {
-          final text = value.replaceAll(' ', '').trim();
-          if (text.length >= _selectedCountry.minLength && text.length <= _selectedCountry.maxLength) {
-            setState(() {
-              _errorText = null;
-            });
-          }
-        }
-      },
+      onChanged: (value) {},
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(_selectedCountry.maxLength),
         _MobileNumberSpaceFormatter(),
       ],
       decoration: InputDecoration(
-        label: const Text.rich(
+        label: Text.rich(
           TextSpan(
-            text: 'Mobile Number',
-            children: [
+            text: _translate('Mobile Number', widget.fontFamily),
+            children: const [
               TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
             ],
           ),
         ),
-        errorText: _errorText,
         labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -4309,12 +5098,14 @@ class CustomCountrySelectField extends StatefulWidget {
   final String initialCountryCode;
   final Function(String, String) onCountrySelect; // code, name
   final bool enabled;
+  final String? fontFamily;
 
   const CustomCountrySelectField({
     Key? key,
     required this.initialCountryCode,
     required this.onCountrySelect,
     this.enabled = true,
+    this.fontFamily,
   }) : super(key: key);
 
   @override
@@ -4337,7 +5128,9 @@ class _CustomCountrySelectFieldState extends State<CustomCountrySelectField> {
   void didUpdateWidget(CustomCountrySelectField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialCountryCode != widget.initialCountryCode) {
-      _selectedCountry = intl_country.countries.firstWhere((c) => c.code == widget.initialCountryCode, orElse: () => intl_country.countries.firstWhere((c) => c.code == 'IN'));
+      setState(() {
+        _selectedCountry = intl_country.countries.firstWhere((c) => c.code == widget.initialCountryCode, orElse: () => intl_country.countries.firstWhere((c) => c.code == 'IN'));
+      });
     }
   }
 
@@ -4396,6 +5189,7 @@ class _CustomCountrySelectFieldState extends State<CustomCountrySelectField> {
                 ),
                 child: _CountryDropdownPanel(
                   initialCountry: _selectedCountry,
+                  fontFamily: widget.fontFamily,
                   onSelect: (country) {
                     setState(() => _selectedCountry = country);
                     widget.onCountrySelect(country.code, country.name);
@@ -4433,7 +5227,7 @@ class _CustomCountrySelectFieldState extends State<CustomCountrySelectField> {
         onTap: _toggleDropdown,
         child: InputDecorator(
           decoration: InputDecoration(
-            labelText: 'Country',
+            label: Text(_translate('Country *', widget.fontFamily)),
             labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
             filled: true,
             fillColor: widget.enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
@@ -4494,10 +5288,12 @@ class _CustomCountrySelectFieldState extends State<CustomCountrySelectField> {
 class _CountryDropdownPanel extends StatefulWidget {
   final intl_country.Country initialCountry;
   final ValueChanged<intl_country.Country> onSelect;
+  final String? fontFamily;
 
   const _CountryDropdownPanel({
     required this.initialCountry,
     required this.onSelect,
+    this.fontFamily,
   });
 
   @override
@@ -4566,7 +5362,7 @@ class _CountryDropdownPanelState extends State<_CountryDropdownPanel> {
                 decoration: InputDecoration(
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  hintText: 'Search country or code...',
+                  hintText: _translate('Search country or code...', widget.fontFamily),
                   hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                   prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
                   filled: true,
@@ -4897,11 +5693,98 @@ class _MultiYearDropdownFieldState extends State<_MultiYearDropdownField> {
   }
 }
 
+
+String _translate(String text, String? fontFamily) {
+  if (fontFamily != 'Sun Tommy') return text;
+  final Map<String, String> translations = {
+    'Personal Identity': 'தனிப்பட்ட அடையாளம்',
+    'Member Code': 'உறுப்பினர் குறியீடு',
+    'Full Name': 'முழு பெயர்',
+    'Full Name *': 'முழு பெயர் *',
+    "Father's Name": 'தந்தை பெயர்',
+    'Gender': 'பாலினம்',
+    'Male': 'ஆண்',
+    'Female': 'பெண்',
+    'Other': 'மற்றவை',
+    'VIP Status': 'விஐபி அந்தஸ்து',
+    'Yes': 'ஆம்',
+    'No': 'இல்லை',
+    'Contact Information': 'தொடர்புத் தகவல்',
+    'Mobile Number *': 'கைபேசி எண் *',
+    'Mobile Number': 'கைபேசி எண்',
+    'Email *': 'மின்னஞ்சல் *',
+    'Email': 'மின்னஞ்சல்',
+    'Cancel': 'ரத்து செய்',
+    'Save Member': 'உறுப்பினரைச் சேமி',
+    'Update Member': 'உறுப்பினரைப் புதுப்பி',
+    'Address Details': 'முகவரி விவரங்கள்',
+    'Address Line 1 *': 'முகவரி வரி 1 *',
+    'Address Line 1': 'முகவரி வரி 1',
+    'Address Line 2 *': 'முகவரி வரி 2 *',
+    'Address Line 2': 'முகவரி வரி 2',
+    'Address Line 3': 'முகவரி வரி 3',
+    'Address Line 4': 'முகவரி வரி 4',
+    'City': 'நகரம்',
+    'District': 'மாவட்டம்',
+    'State': 'மாநிலம்',
+    'Country': 'நாடு',
+    'PinCode': 'அஞ்சல் குறியீடு',
+    'Events': 'நிகழ்வுகள்',
+    'Add Event': 'நிகழ்வைச் சேர்',
+    'Event Name': 'நிகழ்வின் பெயர்',
+    'Amount': 'தொகை',
+    'Amount *': 'தொகை *',
+    'India': 'இந்தியா',
+    'Tamil Nadu': 'தமிழ்நாடு',
+    'Kerala': 'கேரளா',
+    'Karnataka': 'கர்நாடகா',
+    'Andhra Pradesh': 'ஆந்திரப் பிரதேசம்',
+    'Telangana': 'தெலுங்கானா',
+    'Puducherry': 'புதுச்சேரி',
+    'Payment Status': 'கட்டண நிலை',
+    'Select Status': 'நிலையைத் தேர்ந்தெடு',
+    'Please fill the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய நிகழ்வு விவரங்களை நிரப்பவும்.',
+    'Please fill all the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய அனைத்து நிகழ்வு விவரங்களையும் நிரப்பவும்.',
+    'Validation Error': 'சரிபார்ப்பு பிழை',
+    'Paid': 'செலுத்தப்பட்டது',
+    'Unpaid': 'செலுத்தப்படவில்லை',
+    'Required': 'கட்டாயம்',
+    'Please enter a valid email': 'சரியான மின்னஞ்சலை உள்ளிடவும்',
+    'Search state...': 'மாநிலத்தைத் தேடு...',
+    'Search country or code...': 'நாடு அல்லது குறியீட்டைத் தேடு...',
+    'Select State': 'மாநிலத்தைத் தேர்ந்தெடு',
+    'Remove': 'நீக்கு',
+    'From Date': 'தொடக்க தேதி',
+    'To Date': 'முடிவு தேதி',
+    'Year': 'ஆண்டு',
+    'Status': 'நிலை',
+    'Action': 'செயல்',
+    'Invalid Mobile Number': 'தவறான கைபேசி எண்',
+    'Enter a valid': 'சரியானதை உள்ளிடவும்',
+    'digit mobile number': 'இலக்க கைபேசி எண்',
+    'Enter between': 'இடையே உள்ளிடவும்',
+    'and': 'மற்றும்',
+    'digits': 'இலக்கங்கள்',
+    'No states found for this country': 'இந்த நாட்டிற்கு மாநிலங்கள் காணப்படவில்லை',
+  };
+  if (text.startsWith('Add New') && text.endsWith('Member')) {
+    final middle = text.substring('Add New'.length, text.length - 'Member'.length).trim();
+    return middle.isEmpty ? 'புதிய உறுப்பினரைச் சேர்' : 'புதிய ${middle} உறுப்பினரைச் சேர்';
+  }
+  if (text.startsWith('Edit') && text.endsWith('Member')) {
+    final middle = text.substring('Edit'.length, text.length - 'Member'.length).trim();
+    return middle.isEmpty ? 'உறுப்பினரைப் புதுப்பி' : '${middle} உறுப்பினரைப் புதுப்பி';
+  }
+  return translations[text] ?? text;
+}
+
 class CustomStateSelectField extends StatefulWidget {
+
   final String initialState;
   final String selectedCountry;
   final Function(String) onStateSelect;
   final bool enabled;
+  final String? fontFamily;
 
   const CustomStateSelectField({
     Key? key,
@@ -4909,6 +5792,7 @@ class CustomStateSelectField extends StatefulWidget {
     required this.selectedCountry,
     required this.onStateSelect,
     this.enabled = true,
+    this.fontFamily,
   }) : super(key: key);
 
   @override
@@ -4944,13 +5828,17 @@ class _CustomStateSelectFieldState extends State<CustomStateSelectField> {
   void didUpdateWidget(CustomStateSelectField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialState != widget.initialState && widget.initialState.isNotEmpty) {
-      _selectedState = widget.initialState;
+      setState(() {
+        _selectedState = widget.initialState;
+      });
     }
     if (oldWidget.selectedCountry != widget.selectedCountry) {
       _fetchStatesForCountry(widget.selectedCountry);
       // Optional: reset state when country changes
       if (widget.selectedCountry != oldWidget.selectedCountry) {
-        _selectedState = 'Select State';
+        setState(() {
+          _selectedState = 'Select State';
+        });
         WidgetsBinding.instance.addPostFrameCallback((_) {
           widget.onStateSelect('');
         });
@@ -5043,10 +5931,11 @@ class _CustomStateSelectFieldState extends State<CustomStateSelectField> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFFE40000)))
                     : _dynamicStates.isEmpty
-                        ? const Center(child: Text("No states found for this country", style: TextStyle(color: Color(0xFF64748B))))
+                        ? Center(child: Text(_translate("No states found for this country", widget.fontFamily), style: const TextStyle(color: Color(0xFF64748B))))
                         : _StateDropdownPanel(
                             initialState: _selectedState,
                             statesList: _dynamicStates,
+                            fontFamily: widget.fontFamily,
                             onSelect: (state) {
                               setState(() => _selectedState = state);
                               widget.onStateSelect(state);
@@ -5084,7 +5973,7 @@ class _CustomStateSelectFieldState extends State<CustomStateSelectField> {
         onTap: _toggleDropdown,
         child: InputDecorator(
           decoration: InputDecoration(
-            labelText: 'State',
+            label: Text(_translate('State *', widget.fontFamily)),
             labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
             filled: true,
             fillColor: widget.enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
@@ -5145,11 +6034,13 @@ class _StateDropdownPanel extends StatefulWidget {
   final String initialState;
   final List<String> statesList;
   final ValueChanged<String> onSelect;
+  final String? fontFamily;
 
   const _StateDropdownPanel({
     required this.initialState,
     required this.statesList,
     required this.onSelect,
+    this.fontFamily,
   });
 
   @override
@@ -5204,7 +6095,7 @@ class _StateDropdownPanelState extends State<_StateDropdownPanel> {
           child: TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(
-              hintText: 'Search state...',
+              hintText: _translate('Search state...', widget.fontFamily),
               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
               prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
               filled: true,
@@ -5284,6 +6175,107 @@ class _HoverScaleWidgetState extends State<HoverScaleWidget> {
         transformAlignment: Alignment.center,
         child: widget.child,
       ),
+    );
+  }
+}
+
+class _EventNameAutocomplete extends StatefulWidget {
+  final TextEditingController controller;
+  final bool enabled;
+  final List<String> options;
+  final InputDecoration decoration;
+  final String? Function(String?)? validator;
+
+  const _EventNameAutocomplete({
+    Key? key,
+    required this.controller,
+    required this.enabled,
+    required this.options,
+    required this.decoration,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  State<_EventNameAutocomplete> createState() => _EventNameAutocompleteState();
+}
+
+class _EventNameAutocompleteState extends State<_EventNameAutocomplete> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RawAutocomplete<String>(
+      textEditingController: widget.controller,
+      focusNode: _focusNode,
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text == '') {
+          return widget.options;
+        }
+        return widget.options.where((String option) {
+          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      fieldViewBuilder: (BuildContext context, TextEditingController fieldTextEditingController, FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: fieldTextEditingController,
+          focusNode: fieldFocusNode,
+          style: const TextStyle(fontSize: 13),
+          decoration: widget.decoration,
+          enabled: widget.enabled,
+          maxLength: 254,
+          validator: widget.validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+          onFieldSubmitted: (String value) {
+            onFieldSubmitted();
+          },
+        );
+      },
+      optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.grey.shade300),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200.0, maxWidth: 150.0),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final String option = options.elementAt(index);
+                  return InkWell(
+                    onTap: () {
+                      onSelected(option);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Text(option, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

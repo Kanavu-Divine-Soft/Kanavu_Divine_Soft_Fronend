@@ -41,11 +41,39 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     return String.fromCharCodes(Iterable.generate(8, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
+  void _updateFormState() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     _passwordController.text = generateRandomPassword();
     _obscurePassword = false;
+
+    _nameController.addListener(_updateFormState);
+    _emailController.addListener(_updateFormState);
+    _passwordController.addListener(_updateFormState);
+    _addressController.addListener(_updateFormState);
+    _godNameController.addListener(_updateFormState);
+    _contactPersonController.addListener(_updateFormState);
+    _mobileNumberController.addListener(_updateFormState);
+  }
+
+  bool get _isFormFilled {
+    final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
+    final isMobileValid = mobileText.length >= _selectedCountry.minLength && 
+                          mobileText.length <= _selectedCountry.maxLength;
+    final emailText = _emailController.text.trim();
+    final isEmailValid = emailText.isNotEmpty && RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailText);
+
+    return _nameController.text.trim().isNotEmpty &&
+           isEmailValid &&
+           _passwordController.text.isNotEmpty &&
+           _addressController.text.trim().isNotEmpty &&
+           _godNameController.text.trim().isNotEmpty &&
+           _contactPersonController.text.trim().isNotEmpty &&
+           isMobileValid;
   }
 
   Future<void> _createAdmin() async {
@@ -205,7 +233,13 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                  hint: 'Enter Email Address',
                                  icon: Icons.email_outlined,
                                  enableCopy: true,
-                                 validator: (v) => v!.isEmpty ? 'Enter email' : null,
+                                 validator: (v) {
+                                   if (v == null || v.isEmpty) return 'Enter email address';
+                                   if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(v)) {
+                                     return 'Enter a valid email address';
+                                   }
+                                   return null;
+                                 },
                                  inputFormatters: [LengthLimitingTextInputFormatter(254)],
                                 ),
                               ],
@@ -233,6 +267,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   child: TextFormField(
                                     key: _mobileFieldKey,
                                     controller: _mobileNumberController,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                   style: const TextStyle(color: Color(0xFF111827)),
                                   keyboardType: TextInputType.phone,
                                   inputFormatters: [
@@ -303,11 +338,20 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   validator: (v) {
                                     if (v == null || v.isEmpty) return 'Enter mobile number';
                                     final text = v.replaceAll(' ', '').trim();
-                                    if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
-                                      if (_selectedCountry.minLength == _selectedCountry.maxLength) {
-                                        return 'Enter a valid ${_selectedCountry.minLength}-digit mobile number';
-                                      } else {
-                                        return 'Enter between ${_selectedCountry.minLength} and ${_selectedCountry.maxLength} digits';
+                                    
+                                    if (_selectedCountry.code == 'IN') {
+                                      if (text.length != 10) {
+                                        return 'Enter a valid 10-digit mobile number';
+                                      } else if (!RegExp(r'^[6-9]\d{9}$').hasMatch(text)) {
+                                        return 'Invalid Indian mobile number';
+                                      }
+                                    } else {
+                                      if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
+                                        if (_selectedCountry.minLength == _selectedCountry.maxLength) {
+                                          return 'Enter a valid ${_selectedCountry.minLength}-digit mobile number';
+                                        } else {
+                                          return 'Enter between ${_selectedCountry.minLength} and ${_selectedCountry.maxLength} digits';
+                                        }
                                       }
                                     }
                                     return null;
@@ -375,9 +419,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   width: double.infinity,
                                   height: 50,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _createAdmin,
+                                    onPressed: (_isLoading || !_isFormFilled) ? null : _createAdmin,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFE40000),
+                                      disabledBackgroundColor: const Color(0xFFE40000).withOpacity(0.5),
+                                      disabledForegroundColor: Colors.white,
                                       foregroundColor: Colors.white,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -468,6 +514,21 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
   @override
   void dispose() {
     _removeCountryOverlay();
+    
+    _nameController.removeListener(_updateFormState);
+    _emailController.removeListener(_updateFormState);
+    _passwordController.removeListener(_updateFormState);
+    _addressController.removeListener(_updateFormState);
+    _godNameController.removeListener(_updateFormState);
+    _contactPersonController.removeListener(_updateFormState);
+    _mobileNumberController.removeListener(_updateFormState);
+
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    _godNameController.dispose();
+    _contactPersonController.dispose();
     _mobileNumberController.dispose();
     super.dispose();
   }
@@ -489,6 +550,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
       controller: controller,
       obscureText: obscureText,
       style: const TextStyle(color: Color(0xFF111827)),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: validator,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,

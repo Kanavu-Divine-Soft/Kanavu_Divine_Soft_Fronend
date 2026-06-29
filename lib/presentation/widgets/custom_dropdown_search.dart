@@ -25,6 +25,7 @@ class CustomDropdownSearch extends StatefulWidget {
   final bool isLoading;
   final String? errorText;
   final List<TextInputFormatter>? inputFormatters;
+  final bool isSearchable;
 
   const CustomDropdownSearch({
     super.key,
@@ -48,6 +49,7 @@ class CustomDropdownSearch extends StatefulWidget {
     this.isLoading = false,
     this.errorText,
     this.inputFormatters,
+    this.isSearchable = true,
   });
 
   static bool get isOpen =>
@@ -71,6 +73,7 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  ScrollPosition? _parentScrollPosition;
 
   /// When true, the dropdown list is being actively scrolled on a touch
   /// device. We use this to prevent accidental item selection.
@@ -121,6 +124,14 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
     if (mounted) {
       setState(() {});
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _parentScrollPosition?.removeListener(_hideDropdown);
+    _parentScrollPosition = Scrollable.maybeOf(context)?.position;
+    _parentScrollPosition?.addListener(_hideDropdown);
   }
 
   /// Called by the framework when window metrics change (e.g. keyboard
@@ -579,6 +590,7 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
 
   @override
   void dispose() {
+    _parentScrollPosition?.removeListener(_hideDropdown);
     WidgetsBinding.instance.removeObserver(this);
     _searchFocusNode.removeListener(_onFocusChange);
     _overlayEntry?.remove();
@@ -678,6 +690,7 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
                                 controller: _textEditingController,
                                 focusNode: _searchFocusNode,
                                 enabled: widget.isEnabled,
+                                readOnly: !widget.isSearchable,
                                 textInputAction: TextInputAction.done,
                                 onTapOutside: (_) {},
                                 inputFormatters: widget.inputFormatters,

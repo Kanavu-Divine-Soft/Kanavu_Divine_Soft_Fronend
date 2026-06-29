@@ -338,11 +338,20 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   validator: (v) {
                                     if (v == null || v.isEmpty) return 'Enter mobile number';
                                     final text = v.replaceAll(' ', '').trim();
-                                    if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
-                                      if (_selectedCountry.minLength == _selectedCountry.maxLength) {
-                                        return 'Enter a valid ${_selectedCountry.minLength}-digit mobile number';
-                                      } else {
-                                        return 'Enter between ${_selectedCountry.minLength} and ${_selectedCountry.maxLength} digits';
+                                    
+                                    if (_selectedCountry.code == 'IN') {
+                                      if (text.length != 10) {
+                                        return 'Enter a valid 10-digit mobile number';
+                                      } else if (!RegExp(r'^[6-9]\d{9}$').hasMatch(text)) {
+                                        return 'Invalid Indian mobile number';
+                                      }
+                                    } else {
+                                      if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
+                                        if (_selectedCountry.minLength == _selectedCountry.maxLength) {
+                                          return 'Enter a valid ${_selectedCountry.minLength}-digit mobile number';
+                                        } else {
+                                          return 'Enter between ${_selectedCountry.minLength} and ${_selectedCountry.maxLength} digits';
+                                        }
                                       }
                                     }
                                     return null;
