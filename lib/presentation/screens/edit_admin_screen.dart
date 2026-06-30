@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  final GlobalKey _mobileFieldKey = GlobalKey();
+  final GlobalKey<FormFieldState> _mobileFieldKey = GlobalKey<FormFieldState>();
   final LayerLink _layerLink = LayerLink();
   bool _isCountryDropdownOpen = false;
   OverlayEntry? _countryOverlayEntry;
@@ -41,6 +42,70 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
 
   // Tables dropdown state
   String? _selectedTable;
+
+  Timer? _debounceTimer;
+  bool _isCheckingMobile = false;
+  String? _mobileTakenError;
+
+  void _onMobileChanged() {
+    if (mounted) setState(() {});
+    
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    
+    final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
+    if (mobileText.isEmpty) {
+      setState(() => _mobileTakenError = null);
+      return;
+    }
+    
+    bool isMobileValid = mobileText.length >= _selectedCountry.minLength && 
+                          mobileText.length <= _selectedCountry.maxLength;
+    if (isMobileValid && _selectedCountry.code == 'IN') {
+      isMobileValid = RegExp(r'^[6-9]').hasMatch(mobileText);
+    }
+    
+    if (isMobileValid) {
+      _debounceTimer = Timer(const Duration(milliseconds: 600), _checkMobileNumber);
+    } else {
+      setState(() => _mobileTakenError = null);
+    }
+  }
+
+  Future<void> _checkMobileNumber() async {
+    final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
+    if (mobileText.isEmpty) return;
+
+    final fullMobile = '+${_selectedCountry.dialCode} $mobileText';
+    
+    setState(() => _isCheckingMobile = true);
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/api/check_mobile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'mobile_number': fullMobile,
+          'exclude_id': widget.adminData['id'],
+          'exclude_is_super': widget.adminData['role'] == 'Super Admin'
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['is_taken'] == true) {
+          setState(() => _mobileTakenError = 'This mobile number is already registered.');
+        } else {
+          setState(() => _mobileTakenError = null);
+        }
+        _mobileFieldKey.currentState?.validate();
+      }
+    } catch (e) {
+      // Ignore network errors here to avoid spamming the user
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingMobile = false);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -50,23 +115,34 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
     _passwordController = TextEditingController();
     _godNameController = TextEditingController(text: widget.adminData['god_name'] ?? '');
     _contactPersonController = TextEditingController(text: widget.adminData['contact_person'] ?? '');
+    _selectedCountry = countries.firstWhere((c) => c.code == 'IN');
     String initialMobile = widget.adminData['mobile_number']?.toString() ?? '';
+    if (initialMobile.startsWith('+')) {
+      int spaceIdx = initialMobile.indexOf(' ');
+      if (spaceIdx != -1) {
+        String dialCode = initialMobile.substring(1, spaceIdx);
+        try {
+          _selectedCountry = countries.firstWhere((c) => c.dialCode == dialCode);
+        } catch (_) {}
+        initialMobile = initialMobile.substring(spaceIdx + 1);
+      }
+    }
     initialMobile = initialMobile.replaceAll(' ', '');
     if (initialMobile.length > 5) {
       initialMobile = '${initialMobile.substring(0, 5)} ${initialMobile.substring(5)}';
     }
     _mobileNumberController = TextEditingController(text: initialMobile);
+    _mobileNumberController.addListener(_onMobileChanged);
     _addressController = TextEditingController(text: widget.adminData['address'] ?? '');
     _reasonController = TextEditingController();
     _selectedRole = 'Admin';
     _selectedStatus = widget.adminData['status'] ?? 'Active';
     _selectedReason = 'Subscription Expired';
     _selectedTable = widget.adminData['assigned_table'];
-
-    _selectedCountry = countries.firstWhere((c) => c.code == 'IN');
   }
 
   Future<void> _updateAdmin() async {
+    if (_isCheckingMobile || _mobileTakenError != null) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -83,7 +159,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
           'assigned_table': _selectedRole == 'Super Admin' ? null : _selectedTable,
           'god_name': _godNameController.text.trim(),
           'contact_person': _contactPersonController.text.trim(),
-          'mobile_number': _mobileNumberController.text.replaceAll(' ', '').trim(),
+          'mobile_number': '+${_selectedCountry.dialCode} ${_mobileNumberController.text.replaceAll(' ', '').trim()}',
           'address': _addressController.text.trim(),
           if (_passwordController.text.isNotEmpty) 'password': _passwordController.text,
           if (_selectedStatus == 'Inactive') 
@@ -188,7 +264,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'Temple Name *', 
                                   hint: 'Enter Temple Name',
                                   icon: Icons.temple_hindu_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter temple name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter temple name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -200,7 +276,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'God Name *', 
                                   hint: 'Enter God Name',
                                   icon: Icons.self_improvement_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter god name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter god name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -212,7 +288,11 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'Temple Address *', 
                                   hint: 'Enter Temple Address',
                                   icon: Icons.location_on_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter temple address' : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Temple Address is required';
+                                    if (!RegExp(r'[a-zA-Z]').hasMatch(v)) return 'Temple Address must contain at least one alphabetic character';
+                                    return null;
+                                  },
                                   inputFormatters: [LengthLimitingTextInputFormatter(254)],
                                 ),
                                 const SizedBox(height: 16),
@@ -239,7 +319,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                       label: 'Specify Reason *',
                                       hint: 'Enter specific reason',
                                       icon: Icons.info_outline,
-                                      validator: (v) => v!.isEmpty ? 'Enter reason for inactivation' : null,
+                                      validator: (v) => v!.trim().isEmpty ? 'Enter reason for inactivation' : null,
                                     ),
                                   ],
                                 ],
@@ -256,7 +336,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'Contact Person Name *', 
                                   hint: 'Enter Contact Person Name',
                                   icon: Icons.person_outline_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter contact person name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter contact person name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -336,6 +416,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                     fillColor: Colors.white,
                                   ),
                                   validator: (v) {
+                                    if (_mobileTakenError != null) return _mobileTakenError;
                                     if (v == null || v.isEmpty) return 'Enter mobile number';
                                     final text = v.replaceAll(' ', '').trim();
                                     
@@ -343,7 +424,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                       if (text.length != 10) {
                                         return 'Enter a valid 10-digit mobile number';
                                       } else if (!RegExp(r'^[6-9]\d{9}$').hasMatch(text)) {
-                                        return 'Invalid Indian mobile number';
+                                        return 'Indian mobile numbers must start with 6, 7, 8, or 9';
                                       }
                                     } else {
                                       if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
@@ -365,7 +446,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   hint: 'Enter Email Address',
                                   icon: Icons.email_outlined,
                                   enableCopy: true,
-                                  validator: (v) => v!.isEmpty ? 'Enter email' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter email' : null,
                                   inputFormatters: [LengthLimitingTextInputFormatter(254)],
                                 ),
                                 const SizedBox(height: 16),

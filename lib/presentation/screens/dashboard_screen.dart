@@ -28,10 +28,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedStatusFilter = 'All';
 
   List<Map<String, dynamic>> get _searchFilteredTables {
-    if (_searchQuery.isEmpty) return _tables;
+    final query = _searchQuery.trim();
+    if (query.isEmpty) return _tables;
     return _tables.where((t) {
       final name = (t['name'] ?? '').toString().toLowerCase();
-      return name.contains(_searchQuery);
+      return name.contains(query);
     }).toList();
   }
 

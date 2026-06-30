@@ -511,6 +511,50 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     return eventMap.entries.map((e) => {'val': e.key, 'lang': e.value}).toList()..sort((a, b) => a['val']!.compareTo(b['val']!));
   }
 
+  List<Map<String, String>> get _dynamicStates {
+    if (_selectedCountry == 'All Countries') return _states;
+    Map<String, String> stateMap = {'All States': 'English'};
+    for (var m in _allMembers) {
+      if (m['Country'] == _selectedCountry && m['State'] != null && m['State'].toString().isNotEmpty) {
+        String lang = m['Language']?.toString() ?? 'English';
+        String val = m['State'].toString();
+        if (stateMap[val] != 'Tamil') stateMap[val] = lang;
+      }
+    }
+    return stateMap.entries.map((e) => {'val': e.key, 'lang': e.value}).toList()..sort((a, b) => a['val']!.compareTo(b['val']!));
+  }
+
+  List<Map<String, String>> get _dynamicDistricts {
+    if (_selectedState == 'All States' && _selectedCountry == 'All Countries') return _districts;
+    Map<String, String> districtMap = {'All Districts': 'English'};
+    for (var m in _allMembers) {
+      bool countryMatch = _selectedCountry == 'All Countries' || m['Country'] == _selectedCountry;
+      bool stateMatch = _selectedState == 'All States' || m['State'] == _selectedState;
+      if (countryMatch && stateMatch && m['District'] != null && m['District'].toString().isNotEmpty) {
+        String lang = m['Language']?.toString() ?? 'English';
+        String val = m['District'].toString();
+        if (districtMap[val] != 'Tamil') districtMap[val] = lang;
+      }
+    }
+    return districtMap.entries.map((e) => {'val': e.key, 'lang': e.value}).toList()..sort((a, b) => a['val']!.compareTo(b['val']!));
+  }
+
+  List<Map<String, String>> get _dynamicCities {
+    if (_selectedDistrict == 'All Districts' && _selectedState == 'All States' && _selectedCountry == 'All Countries') return _cities;
+    Map<String, String> cityMap = {'All Cities': 'English'};
+    for (var m in _allMembers) {
+      bool countryMatch = _selectedCountry == 'All Countries' || m['Country'] == _selectedCountry;
+      bool stateMatch = _selectedState == 'All States' || m['State'] == _selectedState;
+      bool districtMatch = _selectedDistrict == 'All Districts' || m['District'] == _selectedDistrict;
+      if (countryMatch && stateMatch && districtMatch && m['City'] != null && m['City'].toString().isNotEmpty) {
+        String lang = m['Language']?.toString() ?? 'English';
+        String val = m['City'].toString();
+        if (cityMap[val] != 'Tamil') cityMap[val] = lang;
+      }
+    }
+    return cityMap.entries.map((e) => {'val': e.key, 'lang': e.value}).toList()..sort((a, b) => a['val']!.compareTo(b['val']!));
+  }
+
   List<dynamic> get _paginatedMembers {
     final startIndex = (_currentPage - 1) * _itemsPerPage;
     final endIndex = startIndex + _itemsPerPage;
@@ -778,7 +822,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.power_settings_new_rounded, color: Color(0xFFEF4444), size: 22),
+                      icon: const Icon(Icons.logout, color: Color(0xFFEF4444), size: 22),
                       tooltip: 'Sign Out',
                       onPressed: () async {
                         final prefs = await SharedPreferences.getInstance();
@@ -4335,7 +4379,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     _filterMembers(); 
                   });
                 }),
-                _buildDynamicDropdown('STATE', _selectedState, _states, (val) {
+                _buildDynamicDropdown('STATE', _selectedState, _dynamicStates, (val) {
                   setState(() { 
                     _selectedState = val!; 
                     _selectedDistrict = 'All Districts';
@@ -4343,14 +4387,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     _filterMembers(); 
                   });
                 }),
-                _buildDynamicDropdown('DISTRICT', _selectedDistrict, _districts, (val) {
+                _buildDynamicDropdown('DISTRICT', _selectedDistrict, _dynamicDistricts, (val) {
                   setState(() { 
                     _selectedDistrict = val!; 
                     _selectedCity = 'All Cities';
                     _filterMembers(); 
                   });
                 }),
-                _buildDynamicDropdown('CITY OR TALUK', _selectedCity, _cities, (val) {
+                _buildDynamicDropdown('CITY OR TALUK', _selectedCity, _dynamicCities, (val) {
                   setState(() { 
                     _selectedCity = val!; 
                     _filterMembers(); 
@@ -4626,14 +4670,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.payments_outlined, color: Colors.green, size: 20),
+                    tooltip: 'Add Payment',
                     onPressed: () => _showRecordPaymentDialog(member),
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, color: Colors.orange, size: 20),
+                    tooltip: 'Edit',
                     onPressed: () => _showEditMemberDialog(member),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    tooltip: 'Delete',
                     onPressed: () => _deleteMember(member),
                   ),
                 ],

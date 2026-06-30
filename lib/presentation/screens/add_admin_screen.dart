@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
@@ -28,12 +29,16 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
 
   Country _selectedCountry = countries.firstWhere((c) => c.code == 'IN');
   OverlayEntry? _countryOverlayEntry;
-  final GlobalKey _mobileFieldKey = GlobalKey();
+  final GlobalKey<FormFieldState> _mobileFieldKey = GlobalKey<FormFieldState>();
   final LayerLink _layerLink = LayerLink();
   bool _isCountryDropdownOpen = false;
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  Timer? _debounceTimer;
+  bool _isCheckingMobile = false;
+  String? _mobileTakenError;
   
   String generateRandomPassword() {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$&*';
@@ -43,6 +48,63 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
 
   void _updateFormState() {
     if (mounted) setState(() {});
+  }
+
+  void _onMobileChanged() {
+    _updateFormState();
+    
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    
+    final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
+    if (mobileText.isEmpty) {
+      setState(() => _mobileTakenError = null);
+      return;
+    }
+    
+    bool isMobileValid = mobileText.length >= _selectedCountry.minLength && 
+                          mobileText.length <= _selectedCountry.maxLength;
+    if (isMobileValid && _selectedCountry.code == 'IN') {
+      isMobileValid = RegExp(r'^[6-9]').hasMatch(mobileText);
+    }
+    
+    if (isMobileValid) {
+      _debounceTimer = Timer(const Duration(milliseconds: 600), _checkMobileNumber);
+    } else {
+      setState(() => _mobileTakenError = null);
+    }
+  }
+
+  Future<void> _checkMobileNumber() async {
+    final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
+    if (mobileText.isEmpty) return;
+
+    final fullMobile = '+${_selectedCountry.dialCode} $mobileText';
+    
+    setState(() => _isCheckingMobile = true);
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/api/check_mobile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'mobile_number': fullMobile}),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['is_taken'] == true) {
+          setState(() => _mobileTakenError = 'This mobile number is already registered.');
+        } else {
+          setState(() => _mobileTakenError = null);
+        }
+        _mobileFieldKey.currentState?.validate();
+      }
+    } catch (e) {
+      // Ignore network errors here to avoid spamming the user
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingMobile = false);
+        _updateFormState();
+      }
+    }
   }
 
   @override
@@ -57,23 +119,30 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     _addressController.addListener(_updateFormState);
     _godNameController.addListener(_updateFormState);
     _contactPersonController.addListener(_updateFormState);
-    _mobileNumberController.addListener(_updateFormState);
+    _mobileNumberController.addListener(_onMobileChanged);
   }
 
   bool get _isFormFilled {
     final mobileText = _mobileNumberController.text.replaceAll(' ', '').trim();
-    final isMobileValid = mobileText.length >= _selectedCountry.minLength && 
+    bool isMobileValid = mobileText.length >= _selectedCountry.minLength && 
                           mobileText.length <= _selectedCountry.maxLength;
+    if (isMobileValid && _selectedCountry.code == 'IN') {
+      isMobileValid = RegExp(r'^[6-9]').hasMatch(mobileText);
+    }
     final emailText = _emailController.text.trim();
     final isEmailValid = emailText.isNotEmpty && RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailText);
 
     return _nameController.text.trim().isNotEmpty &&
            isEmailValid &&
-           _passwordController.text.isNotEmpty &&
+           _passwordController.text.trim().isNotEmpty &&
+           _passwordController.text.length >= 6 &&
            _addressController.text.trim().isNotEmpty &&
+           RegExp(r'[a-zA-Z]').hasMatch(_addressController.text) &&
            _godNameController.text.trim().isNotEmpty &&
            _contactPersonController.text.trim().isNotEmpty &&
-           isMobileValid;
+           isMobileValid &&
+           !_isCheckingMobile &&
+           _mobileTakenError == null;
   }
 
   Future<void> _createAdmin() async {
@@ -94,7 +163,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
           'table_prefix': _nameController.text.trim(),
           'assigned_table': null,
           'contact_person': _contactPersonController.text.trim(),
-          'mobile_number': _mobileNumberController.text.replaceAll(' ', '').trim(),
+          'mobile_number': '+${_selectedCountry.dialCode} ${_mobileNumberController.text.replaceAll(' ', '').trim()}',
         }),
       );
 
@@ -199,7 +268,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   label: 'Temple Name *',
                                   hint: 'Enter Temple Name',
                                   icon: Icons.temple_hindu_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter temple name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter temple name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -211,7 +280,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   label: 'God Name *',
                                   hint: 'Enter God Name',
                                   icon: Icons.self_improvement_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter god name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter god name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -223,7 +292,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   label: 'Temple Address *',
                                   hint: 'Enter Temple Address',
                                   icon: Icons.location_on_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter temple address' : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Temple Address is required';
+                                    if (!RegExp(r'[a-zA-Z]').hasMatch(v)) return 'Temple Address must contain at least one alphabetic character';
+                                    return null;
+                                  },
                                   inputFormatters: [LengthLimitingTextInputFormatter(254)],
                                 ),
                                 const SizedBox(height: 16),
@@ -234,7 +307,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                  icon: Icons.email_outlined,
                                  enableCopy: true,
                                  validator: (v) {
-                                   if (v == null || v.isEmpty) return 'Enter email address';
+                                   if (v == null || v.trim().isEmpty) return 'Enter email address';
                                    if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(v)) {
                                      return 'Enter a valid email address';
                                    }
@@ -255,7 +328,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                   label: 'Contact Person Name *',
                                   hint: 'Enter Contact Person Name',
                                   icon: Icons.person_outline_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter contact person name' : null,
+                                  validator: (v) => v!.trim().isEmpty ? 'Enter contact person name' : null,
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(254),
                                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -336,6 +409,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                     fillColor: Colors.white,
                                   ),
                                   validator: (v) {
+                                    if (_mobileTakenError != null) return _mobileTakenError;
                                     if (v == null || v.isEmpty) return 'Enter mobile number';
                                     final text = v.replaceAll(' ', '').trim();
                                     
@@ -343,7 +417,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                       if (text.length != 10) {
                                         return 'Enter a valid 10-digit mobile number';
                                       } else if (!RegExp(r'^[6-9]\d{9}$').hasMatch(text)) {
-                                        return 'Invalid Indian mobile number';
+                                        return 'Indian mobile numbers must start with 6, 7, 8, or 9';
                                       }
                                     } else {
                                       if (text.length < _selectedCountry.minLength || text.length > _selectedCountry.maxLength) {
@@ -368,7 +442,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                    obscureText: _obscurePassword,
                                    onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
                                    enableCopy: true,
-                                   validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
+                                   validator: (v) {
+                                     if (v == null || v.trim().isEmpty) return 'Password cannot be blank or contain only spaces';
+                                     if (v.length < 6) return 'Min 6 characters';
+                                     return null;
+                                   },
                                  ),
                                 const SizedBox(height: 8),
                                 Align(

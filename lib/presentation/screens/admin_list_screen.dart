@@ -25,11 +25,12 @@ class _AdminListScreenState extends State<AdminListScreen> {
   String _selectedTab = 'Active';
 
   List<dynamic> get _filteredAdmins {
-    if (_searchQuery.isEmpty) return _admins;
+    final query = _searchQuery.trim();
+    if (query.isEmpty) return _admins;
     return _admins.where((admin) {
       final name = (admin['name'] ?? '').toString().toLowerCase();
       final email = (admin['email'] ?? '').toString().toLowerCase();
-      return name.contains(_searchQuery) || email.contains(_searchQuery);
+      return name.contains(query) || email.contains(query);
     }).toList();
   }
 
@@ -785,6 +786,7 @@ class _PaginatedTempleTableState extends State<PaginatedTempleTable> {
                                         decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                                         child: IconButton(
                                           icon: const Icon(Icons.edit_rounded, color: Colors.blue, size: 20),
+                                          tooltip: 'Edit',
                                           onPressed: () async {
                                             final result = await Navigator.push(
                                               context,
@@ -799,6 +801,7 @@ class _PaginatedTempleTableState extends State<PaginatedTempleTable> {
                                         decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                                         child: IconButton(
                                           icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                                          tooltip: 'Delete',
                                           onPressed: () => widget.onDeleteConfirmation(admin as Map<String, dynamic>),
                                         ),
                                       ),
