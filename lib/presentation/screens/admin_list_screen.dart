@@ -128,11 +128,12 @@ class _AdminListScreenState extends State<AdminListScreen> {
 
   Widget _buildTabButton(String tabName) {
     bool isSelected = _selectedTab == tabName;
+    bool isMobile = MediaQuery.of(context).size.width < 600;
     return InkWell(
       onTap: () => setState(() => _selectedTab = tabName),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24, vertical: isMobile ? 10 : 12),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE40000).withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -142,6 +143,7 @@ class _AdminListScreenState extends State<AdminListScreen> {
           style: TextStyle(
             color: isSelected ? const Color(0xFFE40000) : const Color(0xFF6B7280),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: isMobile ? 14 : 16,
           ),
         ),
       ),
@@ -282,67 +284,92 @@ class _AdminListScreenState extends State<AdminListScreen> {
                                 children: [
                                   const Text('Temple Management', style: TextStyle(color: Color(0xFF111827), fontSize: 24, fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: () async {
-                                      await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const AddAdminScreen()),
-                                      );
-                                      _fetchAdmins();
-                                    },
-                                    icon: const Icon(Icons.add, size: 20, color: Colors.white),
-                                    label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFE40000),
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            _buildTabButton('Active'),
+                                            Container(width: 1, height: 24, color: const Color(0xFFE5E7EB)),
+                                            _buildTabButton('Inactive'),
+                                          ],
+                                        ),
+                                      ),
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const AddAdminScreen()),
+                                          );
+                                          _fetchAdmins();
+                                        },
+                                        icon: const Icon(Icons.add, size: 18, color: Colors.white),
+                                        label: const Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFFE40000),
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Temple Management', style: TextStyle(color: Color(0xFF111827), fontSize: 24, fontWeight: FontWeight.bold)),
-                                  ElevatedButton.icon(
-                                    onPressed: () async {
-                                      await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const AddAdminScreen()),
-                                      );
-                                      _fetchAdmins();
-                                    },
-                                    icon: const Icon(Icons.add, size: 20, color: Colors.white),
-                                    label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFE40000),
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      const Text('Temple Management', style: TextStyle(color: Color(0xFF111827), fontSize: 24, fontWeight: FontWeight.bold)),
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const AddAdminScreen()),
+                                          );
+                                          _fetchAdmins();
+                                        },
+                                        icon: const Icon(Icons.add, size: 20, color: Colors.white),
+                                        label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFFE40000),
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 32),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        _buildTabButton('Active'),
+                                        Container(width: 1, height: 24, color: const Color(0xFFE5E7EB)),
+                                        _buildTabButton('Inactive'),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                          const SizedBox(height: 32),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE5E7EB)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildTabButton('Active'),
-                                Container(width: 1, height: 24, color: const Color(0xFFE5E7EB)),
-                                _buildTabButton('Inactive'),
-                              ],
-                            ),
-                          ),
                           const SizedBox(height: 24),
                           if (_selectedTab == 'Active')
                             PaginatedTempleTable(
@@ -396,6 +423,29 @@ class _AdminListScreenState extends State<AdminListScreen> {
           const Spacer(),
           const Divider(color: Colors.white24),
           _buildDrawerItem(Icons.logout_rounded, 'Logout', false, onTap: () async {
+            final bool? confirm = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirm != true) return;
+
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('user_data');
             

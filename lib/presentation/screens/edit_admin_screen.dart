@@ -125,6 +125,15 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
           _selectedCountry = countries.firstWhere((c) => c.dialCode == dialCode);
         } catch (_) {}
         initialMobile = initialMobile.substring(spaceIdx + 1);
+      } else {
+        var sortedCountries = List<Country>.from(countries)..sort((a, b) => b.dialCode.length.compareTo(a.dialCode.length));
+        for (var c in sortedCountries) {
+          if (initialMobile.startsWith('+${c.dialCode}')) {
+            _selectedCountry = c;
+            initialMobile = initialMobile.substring(c.dialCode.length + 1);
+            break;
+          }
+        }
       }
     }
     initialMobile = initialMobile.replaceAll(' ', '');
@@ -216,17 +225,69 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
     }
   }
 
+  bool _hasUnsavedChanges() {
+    if (_nameController.text.trim() != (widget.adminData['name'] ?? '')) return true;
+    if (_emailController.text.trim() != (widget.adminData['email'] ?? '')) return true;
+    if (_passwordController.text.isNotEmpty) return true;
+    if (_godNameController.text.trim() != (widget.adminData['god_name'] ?? '')) return true;
+    if (_contactPersonController.text.trim() != (widget.adminData['contact_person'] ?? '')) return true;
+    if (_addressController.text.trim() != (widget.adminData['address'] ?? '')) return true;
+    if (_selectedStatus != (widget.adminData['status'] ?? 'Active')) return true;
+    if (_selectedRole == 'Admin' && _selectedTable != widget.adminData['assigned_table']) return true;
+    
+    String initialMobile = widget.adminData['mobile_number']?.toString() ?? '';
+    String currentMobile = '+${_selectedCountry.dialCode} ${_mobileNumberController.text.replaceAll(' ', '').trim()}';
+    if (initialMobile.replaceAll(' ', '') != currentMobile.replaceAll(' ', '')) return true;
+
+    return false;
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasUnsavedChanges()) return true;
+    
+    final bool? shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('You have unsaved changes. Are you sure you want to go back?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    
+    return shouldPop ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
-      appBar: AppBar(
-        title: const Text('Edit Temple', style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.1),
-        iconTheme: const IconThemeData(color: Color(0xFF111827)),
-      ),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F8),
+        appBar: AppBar(
+          title: const Text('Edit Temple', style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.white,
+          elevation: 1,
+          shadowColor: Colors.black.withOpacity(0.1),
+          iconTheme: const IconThemeData(color: Color(0xFF111827)),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (await _onWillPop()) {
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+          ),
+        ),
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
@@ -459,7 +520,16 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   obscureText: _obscurePassword,
                                   onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
                                   enableCopy: true,
-                                  validator: (v) => v!.isNotEmpty && v.length < 6 ? 'Min 6 characters' : null,
+                                  validator: (v) {
+                                    if (v != null && v.isNotEmpty) {
+                                      if (v.trim().isEmpty) return 'Password cannot be only spaces';
+                                      if (v.length < 8) return 'Password must be at least 8 characters';
+                                      if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$').hasMatch(v)) {
+                                        return 'Must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character';
+                                      }
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ],
                             );
@@ -521,6 +591,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -613,6 +684,7 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
       obscureText: obscureText,
       style: const TextStyle(color: Color(0xFF111827)),
       validator: validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       decoration: InputDecoration(

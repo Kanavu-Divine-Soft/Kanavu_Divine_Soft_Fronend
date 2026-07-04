@@ -1097,6 +1097,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const Spacer(),
           const Divider(color: Colors.white24),
           _buildDrawerItem(Icons.logout_rounded, 'Logout', false, onTap: () async {
+            final bool? confirm = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirm != true) return;
+
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('user_data');
             

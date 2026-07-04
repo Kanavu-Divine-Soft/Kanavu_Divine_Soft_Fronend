@@ -100,10 +100,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     bool? obscureText,
     VoidCallback? onTogglePassword,
     String? Function(String?)? validator,
+    bool enableInteractiveSelection = true,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword ? obscureText! : false,
+      enableInteractiveSelection: enableInteractiveSelection,
       style: const TextStyle(color: Color(0xFF111827)),
       decoration: InputDecoration(
         hintText: hint,
@@ -228,8 +230,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter a new password';
                           }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
+                          if (value.contains(' ')) {
+                            return 'Blank spaces should not be accepted as a valid password';
+                          }
+                          if (value.length < 8 || !RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$').hasMatch(value)) {
+                            return 'Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one numeric digit, and one special character.';
                           }
                           return null;
                         },
@@ -241,6 +246,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         icon: Icons.lock_outline_rounded,
                         isPassword: true,
                         obscureText: _obscureConfirmPassword,
+                        enableInteractiveSelection: false,
                         onTogglePassword: () {
                           setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
                         },

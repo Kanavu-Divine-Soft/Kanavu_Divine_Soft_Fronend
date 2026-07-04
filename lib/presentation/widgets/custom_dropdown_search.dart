@@ -308,19 +308,9 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
     _filteredItems = _allEntries.entries.toList();
     _highlightedIndex = 0;
 
-    // Clear the text field so user can type a fresh search.
-    // Only clear when there is no committed value so hint text is shown.
-    if (widget.value == null || widget.value!.isEmpty) {
-      _textEditingController.clear();
-    } else {
-      // Show the display label of the selected value so user can see
-      // the current selection and type to filter from there.
-      final displayValue = _allEntries[widget.value] ??
-          (widget.dropdownMap != null ? '' : widget.value ?? '');
-      if (_textEditingController.text != displayValue) {
-        _textEditingController.text = displayValue;
-      }
-    }
+    // Always clear the text field so user can type a fresh search immediately.
+    // The previous value will be restored in _hideDropdown if they cancel.
+    _textEditingController.clear();
 
     if (!_searchFocusNode.hasFocus) {
       _searchFocusNode.requestFocus();
@@ -585,6 +575,14 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
     }
     _highlightedIndex = 0;
     _isScrolling = false;
+
+    // Restore the display text of the currently selected value.
+    final displayValue = _allEntries[widget.value] ??
+        (widget.dropdownMap != null ? '' : widget.value ?? '');
+    if (_textEditingController.text != displayValue) {
+      _textEditingController.text = displayValue;
+    }
+
     if (mounted) setState(() {});
   }
 

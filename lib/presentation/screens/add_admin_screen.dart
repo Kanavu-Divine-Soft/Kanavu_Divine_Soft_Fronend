@@ -39,6 +39,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
   Timer? _debounceTimer;
   bool _isCheckingMobile = false;
   String? _mobileTakenError;
+  String? _emailTakenError;
   
   String generateRandomPassword() {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$&*';
@@ -114,7 +115,12 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     _obscurePassword = false;
 
     _nameController.addListener(_updateFormState);
-    _emailController.addListener(_updateFormState);
+    _emailController.addListener(() {
+      if (_emailTakenError != null) {
+        setState(() => _emailTakenError = null);
+      }
+      _updateFormState();
+    });
     _passwordController.addListener(_updateFormState);
     _addressController.addListener(_updateFormState);
     _godNameController.addListener(_updateFormState);
@@ -142,7 +148,8 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
            _contactPersonController.text.trim().isNotEmpty &&
            isMobileValid &&
            !_isCheckingMobile &&
-           _mobileTakenError == null;
+           _mobileTakenError == null &&
+           _emailTakenError == null;
   }
 
   Future<void> _createAdmin() async {
@@ -189,13 +196,16 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
           } else {
             errMsg = data['detail'].toString();
             // Handle raw Postgres unique constraint errors
-            if (errMsg.contains('users_email_key')) {
-              errMsg = 'This email address is already registered.';
-            } else if (errMsg.contains('users_mobile_number_key') || errMsg.contains('mobile_number')) {
-              errMsg = 'This mobile number is already registered.';
-            } else if (errMsg.contains('super_admins_email_key')) {
-              errMsg = 'This email address is already registered.';
-            } else if (errMsg.contains('duplicate key value violates unique constraint')) {
+            final lowerErrMsg = errMsg.toLowerCase();
+            if (lowerErrMsg.contains('users_email_key') || lowerErrMsg.contains('super_admins_email_key') || lowerErrMsg.contains('email address already registered')) {
+              setState(() => _emailTakenError = 'This email address is already registered.');
+              _formKey.currentState?.validate();
+              return;
+            } else if (lowerErrMsg.contains('users_mobile_number_key') || lowerErrMsg.contains('mobile_number') || lowerErrMsg.contains('mobile number already registered')) {
+              setState(() => _mobileTakenError = 'This mobile number is already registered.');
+              _formKey.currentState?.validate();
+              return;
+            } else if (lowerErrMsg.contains('duplicate key value violates unique constraint')) {
               errMsg = 'A record with this information already exists.';
             }
           }
@@ -308,9 +318,10 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                                  enableCopy: true,
                                  validator: (v) {
                                    if (v == null || v.trim().isEmpty) return 'Enter email address';
-                                   if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(v)) {
+                                   if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(v.trim())) {
                                      return 'Enter a valid email address';
                                    }
+                                   if (_emailTakenError != null) return _emailTakenError;
                                    return null;
                                  },
                                  inputFormatters: [LengthLimitingTextInputFormatter(254)],

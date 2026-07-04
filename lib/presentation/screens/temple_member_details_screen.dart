@@ -148,7 +148,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   ];
   List<String> _years = [
     'All Years',
-    ...List.generate(DateTime.now().year + 2 - 2000, (i) => (DateTime.now().year + 1 - i).toString())
+    ...List.generate(101, (i) => (2100 - i).toString())
   ];
 
   // Selected Filters
@@ -685,6 +685,29 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             );
                             break;
                           case 'logout':
+                            final bool? confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  content: const Text('Are you sure you want to logout?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (confirm != true) break;
+
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.remove('user_data');
                             if (!context.mounted) return;
@@ -825,6 +848,29 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       icon: const Icon(Icons.logout, color: Color(0xFFEF4444), size: 22),
                       tooltip: 'Sign Out',
                       onPressed: () async {
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                              content: const Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm != true) return;
+
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.remove('user_data');
                         if (!context.mounted) return;
@@ -936,23 +982,30 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         children: [
           const Text('Member Demographics', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              SizedBox(width: 200, child: _buildStatCard('Total Members', _baseMembers.length.toString(), Icons.groups, const Color(0xFFF59E0B), onTap: () { setState(() { _selectedStatusFilter = 'All'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'All')),
-              SizedBox(width: 200, child: _buildStatCard('Active Members', activeCount.toString(), Icons.people_alt, const Color(0xFF8B5CF6), onTap: () { setState(() { _selectedStatusFilter = 'Active'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Active')),
-              SizedBox(width: 200, child: _buildStatCard('Inactive Members', inactiveCount.toString(), Icons.person_off, const Color(0xFFEF4444), onTap: () { setState(() { _selectedStatusFilter = 'Inactive'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Inactive')),
-              SizedBox(width: 200, child: _buildStatCard('Male', maleCount.toString(), Icons.male, const Color(0xFF3B82F6), onTap: () { setState(() { _selectedStatusFilter = 'Male'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Male')),
-              SizedBox(width: 200, child: _buildStatCard('Female', femaleCount.toString(), Icons.female, const Color(0xFFEC4899), onTap: () { setState(() { _selectedStatusFilter = 'Female'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Female')),
-              SizedBox(width: 200, child: _buildStatCard('Paid Amount', _formatIndianCurrency(grandTotalAmount), Icons.currency_rupee, const Color(0xFF10B981))),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                SizedBox(width: 200, child: _buildStatCard('Total Members', _baseMembers.length.toString(), Icons.groups, const Color(0xFFF59E0B), onTap: () { setState(() { _selectedStatusFilter = 'All'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'All')),
+                SizedBox(width: 200, child: _buildStatCard('Active Members', activeCount.toString(), Icons.people_alt, const Color(0xFF8B5CF6), onTap: () { setState(() { _selectedStatusFilter = 'Active'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Active')),
+                SizedBox(width: 200, child: _buildStatCard('Inactive Members', inactiveCount.toString(), Icons.person_off, const Color(0xFFEF4444), onTap: () { setState(() { _selectedStatusFilter = 'Inactive'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Inactive')),
+                SizedBox(width: 200, child: _buildStatCard('Male', maleCount.toString(), Icons.male, const Color(0xFF3B82F6), onTap: () { setState(() { _selectedStatusFilter = 'Male'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Male')),
+                SizedBox(width: 200, child: _buildStatCard('Female', femaleCount.toString(), Icons.female, const Color(0xFFEC4899), onTap: () { setState(() { _selectedStatusFilter = 'Female'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Female')),
+                SizedBox(width: 200, child: _buildStatCard('Paid Amount', _formatIndianCurrency(grandTotalAmount), Icons.currency_rupee, const Color(0xFF10B981))),
+              ],
+            ),
           ),
           const SizedBox(height: 48),
-          Wrap(
-            spacing: 64,
-            runSpacing: 32,
-            children: [
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 64,
+              runSpacing: 32,
+              children: [
               HoverScaleWidget(
                 child: SizedBox(
                   height: 200,
@@ -1118,6 +1171,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),
@@ -1402,6 +1456,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             autovalidateMode: AutovalidateMode.onUserInteraction,
                             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
                             decoration: const InputDecoration(labelText: 'Event Name', border: OutlineInputBorder(), isDense: true),
+                            onChanged: (v) => setDialogState(() {}),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Required';
                               if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(v)) return 'Only letters and spaces allowed';
@@ -1419,7 +1474,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                   onTap: () async {
                                     final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
                                     if (date != null) {
-                                      _fromDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                      setDialogState(() {
+                                        _fromDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                      });
                                     }
                                   },
                                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -1434,7 +1491,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                   onTap: () async {
                                     final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
                                     if (date != null) {
-                                      _toDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                      setDialogState(() {
+                                        _toDateController.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                      });
                                     }
                                   },
                                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -1449,12 +1508,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 child: DropdownButtonFormField<String>(
                                   value: _yearController.text.isEmpty ? DateTime.now().year.toString() : _yearController.text,
                                   decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), isDense: true),
-                                  items: List.generate(20, (index) => (DateTime.now().year - 10 + index).toString())
+                                  items: List.generate(101, (index) => (2100 - index).toString())
                                       .map((String year) => DropdownMenuItem<String>(value: year, child: Text(year)))
                                       .toList(),
                                   onChanged: (String? newValue) {
                                     if (newValue != null) {
-                                      _yearController.text = newValue;
+                                      setDialogState(() {
+                                        _yearController.text = newValue;
+                                      });
                                     }
                                   },
                                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
@@ -1466,6 +1527,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                   controller: _amountController,
                                   decoration: const InputDecoration(labelText: 'Amount', border: OutlineInputBorder(), isDense: true),
                                   keyboardType: TextInputType.number,
+                                  onChanged: (v) => setDialogState(() {}),
                                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                                 ),
                               ),
@@ -1480,7 +1542,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 backgroundColor: const Color(0xFFCC0000),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              onPressed: _isSaving
+                              onPressed: _isSaving || !(_amountController.text.trim() != (event['amount'] ?? '') || _eventNameController.text.trim() != (event['event_name'] ?? '') || _fromDateController.text.trim() != (event['from_date'] ?? '') || _toDateController.text.trim() != (event['to_date'] ?? '') || _yearController.text.trim() != (event['year'] ?? DateTime.now().year.toString()))
                                   ? null
                                   : () async {
                                       if (!_dialogFormKey.currentState!.validate()) return;
@@ -1506,7 +1568,6 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                             'from_date': _fromDateController.text.trim().isEmpty ? null : _fromDateController.text.trim(),
                                             'to_date': _toDateController.text.trim().isEmpty ? null : _toDateController.text.trim(),
                                             'year': _yearController.text.trim().isEmpty ? null : _yearController.text.trim(),
-                                            'status': 'Unpaid',
                                           }),
                                         );
 
@@ -1563,6 +1624,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   }
 
   void _showAddEventForAllDialog() {
+    if (_allMembers.isEmpty) {
+      CustomNotificationDialog.show(
+        context,
+        type: NotificationType.warning,
+        title: 'No Members Found',
+        message: 'There are no members in the directory. Please add members first before assigning an event to all of them.',
+      );
+      return;
+    }
     final _dialogFormKey = GlobalKey<FormState>();
     final _amountController = TextEditingController(text: '0.00');
     final _eventNameController = TextEditingController();
@@ -1696,24 +1766,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
+                          CustomDropdownSearch(
+                            label: 'Event Year',
                             value: _yearController.text.isEmpty ? DateTime.now().year.toString() : _yearController.text,
-                            decoration: InputDecoration(
-                              labelText: 'Event Year',
-                              prefixIcon: const Icon(Icons.calendar_month, color: Color(0xFFE40000)),
-                              filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            items: List.generate(20, (index) => (DateTime.now().year - 10 + index).toString())
-                                .map((String year) => DropdownMenuItem<String>(value: year, child: Text(year)))
-                                .toList(),
+                            dropdownItems: List.generate(101, (index) => (2100 - index).toString()),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
                                 _yearController.text = newValue;
                               }
                             },
                             validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                            height: 50,
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -2189,7 +2252,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 'email': _addEmailController.text.trim(),
                                 'sex': _dialogSex,
                                 'vip': _dialogVip,
-                                'payments': _paymentControllers.map((c) => {
+                                'payments': _paymentControllers.where((c) {
+                                  return c['event_name']!.text.trim().isNotEmpty;
+                                }).map((c) => {
                                   'amount': double.tryParse(c['amount']?.text.trim() ?? '') ?? 0.0,
                                   'event_name': c['event_name']?.text.trim().isEmpty ?? true ? null : c['event_name']!.text.trim(),
                                   'from_date': c['from_date']?.text.trim().isEmpty ?? true ? null : c['from_date']!.text.trim(),
@@ -2772,8 +2837,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                           // Paid/Unpaid toggle
                                           GestureDetector(
                                             onTap: () {
+                                              if (isPaid) {
+                                                CustomNotificationDialog.show(
+                                                  context,
+                                                  type: NotificationType.warning,
+                                                  title: 'Not Allowed',
+                                                  message: 'Payment status cannot be changed to Unpaid once marked as Paid.',
+                                                );
+                                                return;
+                                              }
                                               setDialogState(() {
-                                                payments[idx]['status'] = isPaid ? 'Unpaid' : 'Paid';
+                                                payments[idx]['status'] = 'Paid';
                                               });
                                             },
                                             child: AnimatedContainer(
@@ -2954,6 +3028,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             'to_date': TextEditingController(text: p['to_date']?.toString() ?? ''),
             'year': TextEditingController(text: p['year']?.toString() ?? DateTime.now().year.toString()),
             'status': TextEditingController(text: p['status']?.toString() ?? 'Unpaid'),
+            'is_existing': TextEditingController(text: 'true'),
           }).toList()
         : [
             {
@@ -2963,6 +3038,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               'to_date': TextEditingController(),
               'year': TextEditingController(text: DateTime.now().year.toString()),
               'status': TextEditingController(text: 'Unpaid'),
+              'is_existing': TextEditingController(text: 'false'),
             }
           ];
 
@@ -3246,6 +3322,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                           'to_date': TextEditingController(text: ''),
                                           'year': TextEditingController(text: DateTime.now().year.toString()),
                                           'status': TextEditingController(text: 'Unpaid'),
+                                          'is_existing': TextEditingController(text: 'false'),
                                         });
                                       });
                                     },
@@ -3257,6 +3334,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         _paymentControllers[index]['to_date']?.dispose();
                                         _paymentControllers[index]['year']?.dispose();
                                         _paymentControllers[index]['status']?.dispose();
+                                        _paymentControllers[index]['is_existing']?.dispose();
                                         _paymentControllers.removeAt(index);
                                       });
                                     },
@@ -3333,7 +3411,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 'email': _addEmailController.text.trim(),
                                 'sex': _dialogSex,
                                 'vip': _dialogVip,
-                                'payments': _paymentControllers.map((c) => {
+                                'payments': _paymentControllers.where((c) {
+                                  return c['event_name']!.text.trim().isNotEmpty;
+                                }).map((c) => {
                                   'amount': double.tryParse(c['amount']?.text.trim() ?? '') ?? 0.0,
                                   'event_name': c['event_name']?.text.trim().isEmpty ?? true ? null : c['event_name']!.text.trim(),
                                   'from_date': c['from_date']?.text.trim().isEmpty ?? true ? null : c['from_date']!.text.trim(),
@@ -3861,18 +3941,31 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   ],
                   rows: [
                     for (int j = 0; j < paymentControllers.length; j++)
-                      DataRow(
-                        cells: [
-                          DataCell(SizedBox(
-                            width: 150,
-                            child: TextFormField(
-                              controller: paymentControllers[j]['event_name']!,
-                              enabled: isEditable,
-                              style: const TextStyle(fontSize: 13),
-                              decoration: tableInputDec,
+                      () {
+                        final isExistingRow = paymentControllers[j].containsKey('is_existing') && paymentControllers[j]['is_existing']!.text == 'true';
+                        final isRowEditable = isEditable && !isExistingRow;
+                        return DataRow(
+                          cells: [
+                            DataCell(SizedBox(
+                              width: 150,
+                              child: TextFormField(
+                                controller: paymentControllers[j]['event_name']!,
+                                enabled: isRowEditable,
+                                style: const TextStyle(fontSize: 13),
+                                decoration: tableInputDec,
+                                onChanged: isRowEditable ? (v) {
+                                final activeEvts = _getActiveEvents();
+                                final match = activeEvts.where((e) => e['event_name'] == v).toList();
+                                if (match.isNotEmpty) {
+                                  paymentControllers[j]['amount']!.text = match.first['amount'] ?? '0.00';
+                                  paymentControllers[j]['from_date']!.text = match.first['from_date'] ?? '';
+                                  paymentControllers[j]['to_date']!.text = match.first['to_date'] ?? '';
+                                }
+                                setDialogState(() {});
+                              } : null,
                               validator: (v) {
                                 final p = paymentControllers[j];
-                                bool isActive = p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                bool isActive = j > 0 || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
                                 return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
                               },
                               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -3885,14 +3978,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               style: const TextStyle(fontSize: 13),
                               readOnly: true,
                               decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
-                              enabled: isEditable,
+                              enabled: isRowEditable,
                               validator: (v) {
                                 final p = paymentControllers[j];
-                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
                                 return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
                               },
                               autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onTap: isEditable ? () async {
+                              onTap: isRowEditable ? () async {
                                 final date = await showDatePicker(
                                   context: context,
                                   initialDate: DateTime.now(),
@@ -3912,10 +4005,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               style: const TextStyle(fontSize: 13),
                               readOnly: true,
                               decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
-                              enabled: isEditable,
+                              enabled: isRowEditable,
                               validator: (v) {
                                 final p = paymentControllers[j];
-                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
                                 if (isActive && (v == null || v.trim().isEmpty)) return 'Req';
 
                                 if (v != null && v.isNotEmpty && p['from_date']!.text.isNotEmpty) {
@@ -3932,7 +4025,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 return null;
                               },
                               autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onTap: isEditable ? () async {
+                              onTap: isRowEditable ? () async {
                                 final date = await showDatePicker(
                                   context: context,
                                   initialDate: DateTime.now(),
@@ -3950,15 +4043,26 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             child: Builder(builder: (context) {
                               final val = paymentControllers[j]['year']?.text.isNotEmpty == true ? paymentControllers[j]['year']!.text : DateTime.now().year.toString();
                               final items = List<String>.generate(28, (index) => (2027 - index).toString());
+                              final fromDateText = paymentControllers[j]['from_date']?.text ?? '';
+                              if (fromDateText.isNotEmpty) {
+                                final fromYearStr = fromDateText.split('/').last;
+                                if (int.tryParse(fromYearStr) != null && !items.contains(fromYearStr)) items.add(fromYearStr);
+                              }
+                              final toDateText = paymentControllers[j]['to_date']?.text ?? '';
+                              if (toDateText.isNotEmpty) {
+                                final toYearStr = toDateText.split('/').last;
+                                if (int.tryParse(toYearStr) != null && !items.contains(toYearStr)) items.add(toYearStr);
+                              }
                               if (!items.contains(val)) items.add(val);
+                              items.sort((a, b) => (int.tryParse(b) ?? 0).compareTo(int.tryParse(a) ?? 0));
                               return CustomDropdownSearch(
                                 label: '',
                                 height: 40,
                                 value: val,
                                 borderColor: const Color(0xFFE5E7EB),
                                 dropdownItems: items,
-                                isEnabled: isEditable,
-                                onChanged: isEditable ? (value) {
+                                isEnabled: isRowEditable,
+                                onChanged: isRowEditable ? (value) {
                                   if (value != null) {
                                     setDialogState(() {
                                       paymentControllers[j]['year']!.text = value;
@@ -3978,47 +4082,70 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               dropdownItems: const ['Paid', 'Unpaid'],
                               isEnabled: isEditable,
                               onChanged: isEditable ? (value) {
-                                if (value != null) {
-                                  setDialogState(() {
-                                    paymentControllers[j]['status']!.text = value;
-                                  });
-                                }
-                              } : null,
+                                  if (value != null) {
+                                    if (paymentControllers[j]['status']?.text == 'Paid' && value == 'Unpaid') {
+                                      CustomNotificationDialog.show(
+                                        context,
+                                        type: NotificationType.warning,
+                                        title: 'Not Allowed',
+                                        message: 'Payment status cannot be changed to Unpaid once marked as Paid.',
+                                      );
+                                      setDialogState(() {}); // Force UI to revert dropdown
+                                      return;
+                                    }
+                                    setDialogState(() {
+                                      paymentControllers[j]['status']!.text = value;
+                                    });
+                                  }
+                                } : null,
                             ),
                           )),
                           DataCell(SizedBox(
                             width: 100,
-                            child: TextFormField(
-                              controller: paymentControllers[j]['amount'],
-                              style: const TextStyle(fontSize: 13),
-                              decoration: tableInputDec,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-                              enabled: isEditable,
-                              onTap: isEditable ? () {
-                                if (paymentControllers[j]['amount']!.text == '0.00' || paymentControllers[j]['amount']!.text == '0') {
-                                  paymentControllers[j]['amount']!.clear();
-                                }
-                              } : null,
-                              validator: (v) {
-                                final p = paymentControllers[j];
-                                bool isActive = p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty;
-                                return (isActive && (v == null || v.trim().isEmpty || v == '0' || v == '0.00')) ? 'Req' : null;
-                              },
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                            ),
+                            child: Builder(builder: (context) {
+                              bool isAmountReadOnly = false;
+                              final activeEvts = _getActiveEvents();
+                              final evtName = paymentControllers[j]['event_name']!.text.trim();
+                              if (evtName.isNotEmpty) {
+                                isAmountReadOnly = activeEvts.any((e) => e['event_name'] == evtName);
+                              }
+                              return TextFormField(
+                                controller: paymentControllers[j]['amount'],
+                                style: const TextStyle(fontSize: 13),
+                                decoration: tableInputDec.copyWith(
+                                  fillColor: isAmountReadOnly ? Colors.grey[200] : Colors.white,
+                                  filled: true,
+                                ),
+                                readOnly: isAmountReadOnly,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
+                                enabled: isEditable,
+                                onTap: isEditable && !isAmountReadOnly ? () {
+                                  if (paymentControllers[j]['amount']!.text == '0.00' || paymentControllers[j]['amount']!.text == '0') {
+                                    paymentControllers[j]['amount']!.clear();
+                                  }
+                                } : null,
+                                validator: (v) {
+                                  final p = paymentControllers[j];
+                                  bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty;
+                                  return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
+                                },
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                              );
+                            }),
                           )),
                           DataCell(
-                            onRemovePayment != null && paymentControllers.length > 1
+                            onRemovePayment != null && paymentControllers.length > 1 && !isExistingRow
                                 ? IconButton(
                                     icon: const Icon(Icons.remove_circle, color: Colors.grey),
-                                    onPressed: isEditable ? () => onRemovePayment(j) : null,
+                                    onPressed: isRowEditable ? () => onRemovePayment(j) : null,
                                     tooltip: 'Remove event',
                                   )
                                 : const SizedBox.shrink(),
                           ),
                         ],
-                      ),
+                      );
+                    }(),
                   ],
                 ),
               ),
@@ -5916,7 +6043,19 @@ class _CustomStateSelectFieldState extends State<CustomStateSelectField> {
         _dynamicStates = countryName == 'India' ? fallbackStatesList : [];
       });
     }
-    setState(() => _isLoading = false);
+    
+    if (_dynamicStates.isEmpty && countryName.isNotEmpty && countryName != 'Select Country') {
+      if (mounted) {
+        setState(() {
+          _selectedState = 'N/A';
+        });
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onStateSelect('N/A');
+      });
+    }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _toggleDropdown() {

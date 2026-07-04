@@ -305,6 +305,8 @@ class _LoginScreenState extends State<LoginScreen> {
               label: 'Username or Email',
               icon: Icons.person_outline_rounded,
               maxLength: 254,
+              textInputAction: TextInputAction.next,
+              onFieldSubmitted: (_) => _handleLogin(),
             ),
             const SizedBox(height: 20),
             _buildTextField(
@@ -313,6 +315,8 @@ class _LoginScreenState extends State<LoginScreen> {
               icon: Icons.lock_outline_rounded,
               isPassword: true,
               obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _handleLogin(),
               onTogglePassword: () {
                 setState(() => _obscurePassword = !_obscurePassword);
               },
@@ -384,6 +388,8 @@ class _LoginScreenState extends State<LoginScreen> {
     bool obscureText = false,
     int? maxLength,
     VoidCallback? onTogglePassword,
+    ValueChanged<String>? onFieldSubmitted,
+    TextInputAction? textInputAction,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,6 +406,8 @@ class _LoginScreenState extends State<LoginScreen> {
         TextFormField(
           controller: controller,
           obscureText: obscureText,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
           inputFormatters: maxLength != null ? [LengthLimitingTextInputFormatter(maxLength)] : null,
           style: const TextStyle(color: Color(0xFF111827)),
           decoration: InputDecoration(
