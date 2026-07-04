@@ -368,7 +368,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             }
             if (jsonResponse['imported_count'] == 0) {
               notifType = NotificationType.error;
-              notifTitle = 'Upload Error (Duplicates)';
+              notifTitle = 'Upload Error';
             }
           } catch (e) {
             // fallback to default
