@@ -325,10 +325,16 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'Temple Name *', 
                                   hint: 'Enter Temple Name',
                                   icon: Icons.temple_hindu_outlined,
-                                  validator: (v) => v!.trim().isEmpty ? 'Enter temple name' : null,
+                                  validator: (v) {
+                                    final trimmed = v!.trim();
+                                    if (trimmed.isEmpty) return 'Enter temple name';
+                                    if (trimmed.length < 3 || trimmed.length > 100) return 'Temple name must be between 3 and 100 characters';
+                                    if (!RegExp(r"^[a-zA-Z0-9\s&.\-'\u0B80-\u0BFF]+$").hasMatch(trimmed)) return 'Invalid characters in temple name';
+                                    return null;
+                                  },
                                   inputFormatters: [
-                                    LengthLimitingTextInputFormatter(254),
-                                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                                    LengthLimitingTextInputFormatter(100),
+                                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s&.\-'\u0B80-\u0BFF]")),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -337,10 +343,16 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'God Name *', 
                                   hint: 'Enter God Name',
                                   icon: Icons.self_improvement_outlined,
-                                  validator: (v) => v!.trim().isEmpty ? 'Enter god name' : null,
+                                  validator: (v) {
+                                    final trimmed = v!.trim();
+                                    if (trimmed.isEmpty) return 'Enter god name';
+                                    if (trimmed.length < 2 || trimmed.length > 50) return 'God name must be between 2 and 50 characters';
+                                    if (!RegExp(r"^[a-zA-Z\s\u0B80-\u0BFF]+$").hasMatch(trimmed)) return 'Only letters and spaces allowed';
+                                    return null;
+                                  },
                                   inputFormatters: [
-                                    LengthLimitingTextInputFormatter(254),
-                                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                                    LengthLimitingTextInputFormatter(50),
+                                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s\u0B80-\u0BFF]")),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -350,11 +362,17 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   hint: 'Enter Temple Address',
                                   icon: Icons.location_on_outlined,
                                   validator: (v) {
-                                    if (v == null || v.trim().isEmpty) return 'Temple Address is required';
-                                    if (!RegExp(r'[a-zA-Z]').hasMatch(v)) return 'Temple Address must contain at least one alphabetic character';
+                                    final trimmed = v == null ? '' : v.trim();
+                                    if (trimmed.isEmpty) return 'Temple Address is required';
+                                    if (trimmed.length < 10 || trimmed.length > 250) return 'Address must be between 10 and 250 characters';
+                                    if (!RegExp(r'[a-zA-Z\u0B80-\u0BFF]').hasMatch(trimmed)) return 'Address must contain at least one letter';
+                                    if (!RegExp(r"^[a-zA-Z0-9\s,.\-/#\u0B80-\u0BFF]+$").hasMatch(trimmed)) return 'Invalid characters in address';
                                     return null;
                                   },
-                                  inputFormatters: [LengthLimitingTextInputFormatter(254)],
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(250),
+                                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s,.\-/#\u0B80-\u0BFF]")),
+                                  ],
                                 ),
                                 const SizedBox(height: 16),
                                 _buildDropdown('Status', _selectedStatus, ['Active', 'Inactive'], (val) {
@@ -397,10 +415,16 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   label: 'Contact Person Name *', 
                                   hint: 'Enter Contact Person Name',
                                   icon: Icons.person_outline_outlined,
-                                  validator: (v) => v!.trim().isEmpty ? 'Enter contact person name' : null,
+                                  validator: (v) {
+                                    final trimmed = v!.trim();
+                                    if (trimmed.isEmpty) return 'Enter contact person name';
+                                    if (trimmed.length < 3 || trimmed.length > 50) return 'Name must be between 3 and 50 characters';
+                                    if (!RegExp(r"^[a-zA-Z\s.\-'\u0B80-\u0BFF]+$").hasMatch(trimmed)) return 'Invalid characters in name';
+                                    return null;
+                                  },
                                   inputFormatters: [
-                                    LengthLimitingTextInputFormatter(254),
-                                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                                    LengthLimitingTextInputFormatter(50),
+                                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s.\-'\u0B80-\u0BFF]")),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -507,7 +531,13 @@ class _EditAdminScreenState extends State<EditAdminScreen> {
                                   hint: 'Enter Email Address',
                                   icon: Icons.email_outlined,
                                   enableCopy: true,
-                                  validator: (v) => v!.trim().isEmpty ? 'Enter email' : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Enter email';
+                                    if (!RegExp(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$").hasMatch(v.trim())) {
+                                      return 'Enter a valid email address';
+                                    }
+                                    return null;
+                                  },
                                   inputFormatters: [LengthLimitingTextInputFormatter(254)],
                                 ),
                                 const SizedBox(height: 16),

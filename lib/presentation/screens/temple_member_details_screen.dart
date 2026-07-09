@@ -18,6 +18,7 @@ import 'package:temple_onboarding/core/api_constants.dart';
 import 'package:temple_onboarding/core/download_helper.dart' if (dart.library.html) 'package:temple_onboarding/core/download_helper_web.dart';
 import 'package:temple_onboarding/presentation/widgets/custom_dropdown_search.dart';
 import 'package:temple_onboarding/presentation/utils/pdf_receipt_generator.dart';
+import 'package:temple_onboarding/presentation/widgets/stat_card_animated_background.dart';
 
 class ExpandableYearPill extends StatelessWidget {
   final String yearsStr;
@@ -614,16 +615,6 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: ElevatedButton.icon(
-                    onPressed: _showAddMemberDialog,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add New Member'),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000), foregroundColor: Colors.white),
-                  ),
-                ),
               ],
             );
           }
@@ -768,86 +759,55 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
               return Row(
                 children: [
-                  // Premium Profile Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 15,
-                          backgroundColor: const Color(0xFFE5E7EB),
-                          child: Text(
-                            firstLetter,
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              role,
-                              style: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
+
 
                   // View Events Button
                   TextButton.icon(
                     onPressed: _showViewEventsDialog,
-                    icon: const Icon(Icons.list_alt, color: Color(0xFF3B82F6), size: 18),
-                    label: const Text(
-                      'View Events',
-                      style: TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.bold, fontSize: 13),
+                    icon: const Icon(Icons.list_alt, size: 18),
+                    label: const Text('View Events', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFEFF6FF), // Blue 50
+                      foregroundColor: const Color(0xFF2563EB), // Blue 600
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
 
                   // Add Event for All Button
                   TextButton.icon(
                     onPressed: _showAddEventForAllDialog,
-                    icon: const Icon(Icons.event_available, color: Color(0xFF10B981), size: 18),
-                    label: const Text(
-                      'Add Event for All',
-                      style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13),
+                    icon: const Icon(Icons.event_available, size: 18),
+                    label: const Text('Add Event for All', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFECFDF5), // Emerald 50
+                      foregroundColor: const Color(0xFF059669), // Emerald 600
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
 
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFEE2E2), // Light pinkish-red background
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.logout, color: Color(0xFFEF4444), size: 22),
-                      tooltip: 'Sign Out',
-                      onPressed: () async {
+                  // Add New Member Icon Button
+                  IconButton(
+                    tooltip: 'Add New Member',
+                    onPressed: _showAddMemberDialog,
+                    icon: const Icon(Icons.person_add_alt_1, size: 28),
+                    color: const Color(0xFFE40000),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Profile Popup Menu with Logout
+                  PopupMenuButton<String>(
+                    offset: const Offset(0, 56),
+                    color: Colors.white,
+                    surfaceTintColor: Colors.white,
+                    elevation: 4,
+                    constraints: const BoxConstraints(minWidth: 160),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    onSelected: (value) async {
+                      if (value == 'logout') {
                         final bool? confirm = await showDialog<bool>(
                           context: context,
                           builder: (BuildContext context) {
@@ -879,7 +839,76 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           MaterialPageRoute(builder: (context) => const LoginScreen()),
                           (route) => false,
                         );
-                      },
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                            SizedBox(width: 12),
+                            Text('Logout', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: const Color(0xFFF3F4F6),
+                            child: Text(
+                              firstLetter,
+                              style: const TextStyle(
+                                color: Color(0xFF1F2937),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  color: Color(0xFF111827),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                role,
+                                style: const TextStyle(
+                                  color: Color(0xFF6B7280),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280), size: 20),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -892,9 +921,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildSearchAndFilters(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: _buildMemberStatusOverview(_baseMembers),
             ),
             _buildSummaryBar(),
@@ -921,7 +949,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
   String _formatIndianCurrency(double amount) {
     String str = amount.toStringAsFixed(0);
-    if (str.length <= 3) return '₹$str';
+    if (str.length <= 3) return 'Ã¢â€šÂ¹$str';
     String result = str.substring(str.length - 3);
     str = str.substring(0, str.length - 3);
     while (str.length > 2) {
@@ -931,7 +959,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     if (str.isNotEmpty) {
       result = '$str,$result';
     }
-    return '₹$result';
+    return 'Ã¢â€šÂ¹$result';
   }
 
   Widget _buildMemberStatusOverview(List<dynamic> members) {
@@ -980,199 +1008,48 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Member Demographics', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                SizedBox(width: 200, child: _buildStatCard('Total Members', _baseMembers.length.toString(), Icons.groups, const Color(0xFFF59E0B), onTap: () { setState(() { _selectedStatusFilter = 'All'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'All')),
-                SizedBox(width: 200, child: _buildStatCard('Active Members', activeCount.toString(), Icons.people_alt, const Color(0xFF8B5CF6), onTap: () { setState(() { _selectedStatusFilter = 'Active'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Active')),
-                SizedBox(width: 200, child: _buildStatCard('Inactive Members', inactiveCount.toString(), Icons.person_off, const Color(0xFFEF4444), onTap: () { setState(() { _selectedStatusFilter = 'Inactive'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Inactive')),
-                SizedBox(width: 200, child: _buildStatCard('Male', maleCount.toString(), Icons.male, const Color(0xFF3B82F6), onTap: () { setState(() { _selectedStatusFilter = 'Male'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Male')),
-                SizedBox(width: 200, child: _buildStatCard('Female', femaleCount.toString(), Icons.female, const Color(0xFFEC4899), onTap: () { setState(() { _selectedStatusFilter = 'Female'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Female')),
-                SizedBox(width: 200, child: _buildStatCard('Paid Amount', _formatIndianCurrency(grandTotalAmount), Icons.currency_rupee, const Color(0xFF10B981))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 48),
-          SizedBox(
-            width: double.infinity,
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 64,
-              runSpacing: 32,
-              children: [
-              HoverScaleWidget(
-                child: SizedBox(
-                  height: 200,
-                  width: 250,
-                  child: BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: total.toDouble() > 0 ? (total.toDouble() * 1.2) : 1,
-                      barTouchData: BarTouchData(
-                        enabled: true,
-                        touchTooltipData: BarTouchTooltipData(
-                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                            return BarTooltipItem(
-                              rod.toY.round().toString(),
-                              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                            );
-                          },
-                        ),
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              const style = TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14);
-                              Widget text;
-                              switch (value.toInt()) {
-                                case 0:
-                                  text = const Text('Male', style: style);
-                                  break;
-                                case 1:
-                                  text = const Text('Female', style: style);
-                                  break;
-                                default:
-                                  text = const Text('');
-                                  break;
-                              }
-                              return SideTitleWidget(meta: meta, child: text);
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            getTitlesWidget: (value, meta) {
-                              if (value == value.toInt()) {
-                                return Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12));
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      barGroups: [
-                        BarChartGroupData(
-                          x: 0,
-                          barRods: [
-                            BarChartRodData(toY: maleCount.toDouble(), gradient: const LinearGradient(colors: [Color(0xFF60A5FA), Color(0xFF2563EB)], begin: Alignment.bottomCenter, end: Alignment.topCenter), width: 40, borderRadius: const BorderRadius.vertical(top: Radius.circular(8))),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 1,
-                          barRods: [
-                            BarChartRodData(toY: femaleCount.toDouble(), gradient: const LinearGradient(colors: [Color(0xFFF472B6), Color(0xFFDB2777)], begin: Alignment.bottomCenter, end: Alignment.topCenter), width: 40, borderRadius: const BorderRadius.vertical(top: Radius.circular(8))),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+          const Text('Member Overview', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          Builder(
+            builder: (context) {
+              bool isDesktop = MediaQuery.of(context).size.width >= 900;
+              if (isDesktop) {
+                return Row(
+                  children: [
+                    Expanded(child: _buildStatCard('Total Members', _baseMembers.length.toString(), Icons.groups, const Color(0xFFF59E0B), onTap: () { setState(() { _selectedStatusFilter = 'All'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'All')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard('Active Members', activeCount.toString(), Icons.people_alt, const Color(0xFF8B5CF6), onTap: () { setState(() { _selectedStatusFilter = 'Active'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Active')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard('Inactive Members', inactiveCount.toString(), Icons.person_off, const Color(0xFFEF4444), onTap: () { setState(() { _selectedStatusFilter = 'Inactive'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Inactive')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard('Male', maleCount.toString(), Icons.male, const Color(0xFF3B82F6), onTap: () { setState(() { _selectedStatusFilter = 'Male'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Male')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard('Female', femaleCount.toString(), Icons.female, const Color(0xFFEC4899), onTap: () { setState(() { _selectedStatusFilter = 'Female'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Female')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard('Paid Amount', _formatIndianCurrency(grandTotalAmount), Icons.currency_rupee, const Color(0xFF10B981))),
+                  ],
+                );
+              }
+              return SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    SizedBox(width: 200, child: _buildStatCard('Total Members', _baseMembers.length.toString(), Icons.groups, const Color(0xFFF59E0B), onTap: () { setState(() { _selectedStatusFilter = 'All'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'All')),
+                    SizedBox(width: 200, child: _buildStatCard('Active Members', activeCount.toString(), Icons.people_alt, const Color(0xFF8B5CF6), onTap: () { setState(() { _selectedStatusFilter = 'Active'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Active')),
+                    SizedBox(width: 200, child: _buildStatCard('Inactive Members', inactiveCount.toString(), Icons.person_off, const Color(0xFFEF4444), onTap: () { setState(() { _selectedStatusFilter = 'Inactive'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Inactive')),
+                    SizedBox(width: 200, child: _buildStatCard('Male', maleCount.toString(), Icons.male, const Color(0xFF3B82F6), onTap: () { setState(() { _selectedStatusFilter = 'Male'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Male')),
+                    SizedBox(width: 200, child: _buildStatCard('Female', femaleCount.toString(), Icons.female, const Color(0xFFEC4899), onTap: () { setState(() { _selectedStatusFilter = 'Female'; _filterMembers(); }); }, isSelected: _selectedStatusFilter == 'Female')),
+                    SizedBox(width: 200, child: _buildStatCard('Paid Amount', _formatIndianCurrency(grandTotalAmount), Icons.currency_rupee, const Color(0xFF10B981))),
+                  ],
                 ),
-              ),
-              HoverScaleWidget(
-                child: SizedBox(
-                  height: 200,
-                  width: 250,
-                  child: BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: (activeCount > inactiveCount ? activeCount.toDouble() : inactiveCount.toDouble()) > 0 ? ((activeCount > inactiveCount ? activeCount.toDouble() : inactiveCount.toDouble()) * 1.2) : 1,
-                      barTouchData: BarTouchData(
-                        enabled: true,
-                        touchTooltipData: BarTouchTooltipData(
-                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                            return BarTooltipItem(
-                              rod.toY.round().toString(),
-                              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                            );
-                          },
-                        ),
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              const style = TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14);
-                              Widget text;
-                              switch (value.toInt()) {
-                                case 0:
-                                  text = const Text('Active', style: style);
-                                  break;
-                                case 1:
-                                  text = const Text('Inactive', style: style);
-                                  break;
-                                default:
-                                  text = const Text('');
-                                  break;
-                              }
-                              return SideTitleWidget(meta: meta, child: text);
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            getTitlesWidget: (value, meta) {
-                              if (value == value.toInt()) {
-                                return Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12));
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      barGroups: [
-                        BarChartGroupData(
-                          x: 0,
-                          barRods: [
-                            BarChartRodData(toY: activeCount.toDouble(), gradient: const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)], begin: Alignment.bottomCenter, end: Alignment.topCenter), width: 40, borderRadius: const BorderRadius.vertical(top: Radius.circular(8))),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 1,
-                          barRods: [
-                            BarChartRodData(toY: inactiveCount.toDouble(), gradient: const LinearGradient(colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], begin: Alignment.bottomCenter, end: Alignment.topCenter), width: 40, borderRadius: const BorderRadius.vertical(top: Radius.circular(8))),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           ),
-          ),
+          const SizedBox(height: 24),
+          _buildSearchAndFilters(),
         ],
       ),
     );
@@ -1186,20 +1063,23 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     return HoverScaleWidget(
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          height: 140,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [colorLight, colorDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? Colors.black87 : Colors.transparent, 
-              width: 3
-            ),
+        child: AnimatedScale(
+          scale: isSelected ? 1.05 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorLight, colorDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.transparent, 
+                width: 3
+              ),
             boxShadow: [
               BoxShadow(
                 color: colorDark.withOpacity(isSelected ? 0.6 : 0.3),
@@ -1209,33 +1089,42 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16))),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
+              const Positioned.fill(child: StatCardAnimatedBackground(color: Colors.white)),
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16))),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 24),
+                        ),
+                      ],
                     ),
-                    child: Icon(icon, color: Colors.white, size: 24),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -1362,7 +1251,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('₹${evt['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                                  Text('Ã¢â€šÂ¹${evt['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
                                   const SizedBox(width: 12),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
@@ -1496,7 +1385,21 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                       });
                                     }
                                   },
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Required';
+                                    if (_fromDateController.text.isNotEmpty) {
+                                      try {
+                                        final fParts = _fromDateController.text.split('/');
+                                        final tParts = v.split('/');
+                                        if (fParts.length == 3 && tParts.length == 3) {
+                                          final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                          final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                          if (tD.isBefore(fD)) return 'Must be >= From Date';
+                                        }
+                                      } catch (_) {}
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ],
@@ -1760,7 +1663,21 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                     fillColor: const Color(0xFFF8FAFC),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Required';
+                                    if (_fromDateController.text.isNotEmpty) {
+                                      try {
+                                        final fParts = _fromDateController.text.split('/');
+                                        final tParts = v.split('/');
+                                        if (fParts.length == 3 && tParts.length == 3) {
+                                          final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                          final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                          if (tD.isBefore(fD)) return 'Must be >= From Date';
+                                        }
+                                      } catch (_) {}
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ],
@@ -1957,18 +1874,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     final _addPincodeController = TextEditingController();
     final activeEvents = _getActiveEvents();
 
-    final List<Map<String, TextEditingController>> _paymentControllers = activeEvents.isEmpty 
-        ? [
-            {
-              'amount': TextEditingController(text: '0.00'),
-              'event_name': TextEditingController(text: ''),
-              'from_date': TextEditingController(text: ''),
-              'to_date': TextEditingController(text: ''),
-              'year': TextEditingController(text: DateTime.now().year.toString()),
-              'status': TextEditingController(text: 'Unpaid'),
-            }
-          ]
-        : activeEvents.map((ae) => {
+    final List<Map<String, TextEditingController>> _paymentControllers = activeEvents.map((ae) => {
               'amount': TextEditingController(text: ae['amount']),
               'event_name': TextEditingController(text: ae['event_name']),
               'from_date': TextEditingController(text: ae['from_date']),
@@ -1977,8 +1883,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               'status': TextEditingController(text: 'Unpaid'),
             }).toList();
 
-    String _dialogSex = 'Male';
-    String _dialogVip = 'No';
+    String? _dialogSex;
+    String? _dialogVip;
     String _dialogLanguage = 'English';
     Set<int> _dialogSelectedYears = {};
     String _dialogCountryCode = 'IN';
@@ -2063,26 +1969,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             _addCountryController.text = 'India';
                             _paymentControllers.clear();
                             final activeEvents = _getActiveEvents();
-                            if (activeEvents.isEmpty) {
+                            for (var ae in activeEvents) {
                               _paymentControllers.add({
-                                'amount': TextEditingController(text: '0.00'),
-                                'event_name': TextEditingController(text: ''),
-                                'from_date': TextEditingController(text: ''),
-                                'to_date': TextEditingController(text: ''),
+                                'amount': TextEditingController(text: ae['amount']),
+                                'event_name': TextEditingController(text: ae['event_name']),
+                                'from_date': TextEditingController(text: ae['from_date']),
+                                'to_date': TextEditingController(text: ae['to_date']),
                                 'year': TextEditingController(text: DateTime.now().year.toString()),
                                 'status': TextEditingController(text: 'Unpaid'),
                               });
-                            } else {
-                              for (var ae in activeEvents) {
-                                _paymentControllers.add({
-                                  'amount': TextEditingController(text: ae['amount']),
-                                  'event_name': TextEditingController(text: ae['event_name']),
-                                  'from_date': TextEditingController(text: ae['from_date']),
-                                  'to_date': TextEditingController(text: ae['to_date']),
-                                  'year': TextEditingController(text: DateTime.now().year.toString()),
-                                  'status': TextEditingController(text: 'Unpaid'),
-                                });
-                              }
                             }
                             setDialogState(() => _dialogLanguage = lang);
                           }
@@ -2564,12 +2459,24 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       return;
     }
 
+    final bool isTamil = member['Language'] == 'Tamil' || member['Language'] == 'Sun Tommy';
+    final Map<String, String> itemFonts = {};
     final List<String> dropdownItems = ['All Events (Full Statement)'];
+    itemFonts['All Events (Full Statement)'] = 'Inter';
+
     for (var p in paidPayments) {
       final name = p['event_name']?.toString() ?? 'Unknown Event';
       final year = p['year']?.toString() ?? '';
       final amt = double.tryParse(p['amount']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00';
-      dropdownItems.add('$name $year - Rs. $amt');
+      final text = '$name $year - Rs. $amt';
+      dropdownItems.add(text);
+
+      bool hasUnicodeTamil = text.runes.any((r) => r >= 0x0B80 && r <= 0x0BFF);
+      if (isTamil && !hasUnicodeTamil) {
+        itemFonts[text] = 'Sun Tommy';
+      } else {
+        itemFonts[text] = 'Inter';
+      }
     }
 
     String selectedPaymentString = 'All Events (Full Statement)';
@@ -2604,6 +2511,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           label: 'Event',
                           value: selectedPaymentString,
                           dropdownItems: dropdownItems,
+                          itemFonts: itemFonts,
                           onChanged: (val) {
                             if (val != null) {
                               setDialogState(() {
@@ -2773,12 +2681,12 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         : 'Annual Payment';
                                     final String year = p['year']?.toString() ?? '';
                                     final String amount = p['amount'] != null
-                                        ? '₹${double.tryParse(p['amount'].toString())?.toStringAsFixed(2) ?? p['amount']}'
+                                        ? 'Ã¢â€šÂ¹${double.tryParse(p['amount'].toString())?.toStringAsFixed(2) ?? p['amount']}'
                                         : '';
                                     final String dateRange = [
                                       p['from_date']?.toString() ?? '',
                                       p['to_date']?.toString() ?? '',
-                                    ].where((s) => s.isNotEmpty).join(' – ');
+                                    ].where((s) => s.isNotEmpty).join(' Ã¢â‚¬â€œ ');
 
                                     return Container(
                                       margin: const EdgeInsets.only(bottom: 10),
@@ -2823,7 +2731,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                                 ),
                                                 if (year.isNotEmpty || amount.isNotEmpty)
                                                   Text(
-                                                    [if (year.isNotEmpty) year, if (amount.isNotEmpty) amount].join('  •  '),
+                                                    [if (year.isNotEmpty) year, if (amount.isNotEmpty) amount].join('  Ã¢â‚¬Â¢  '),
                                                     style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                                                   ),
                                                 if (dateRange.isNotEmpty)
@@ -2862,7 +2770,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                                 ),
                                               ),
                                               child: Text(
-                                                isPaid ? '✓ Paid' : 'Unpaid',
+                                                isPaid ? 'Ã¢Å“â€œ Paid' : 'Unpaid',
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
@@ -2994,8 +2902,37 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     final _addCodeController = TextEditingController(text: member['Code']?.toString() ?? '');
     final _addNameController = TextEditingController(text: member['Name']?.toString() ?? '');
     final _addFatherNameController = TextEditingController(text: member['Father_Name']?.toString() ?? '');
+    String _dialogCountryCode = 'IN';
+    {
+      String cName = ((member['Country'] ?? member['country']) ?? '').toString().trim().toLowerCase();
+      if (cName.isNotEmpty) {
+        try {
+          final found = intl_country.countries.firstWhere((x) => x.name.toLowerCase() == cName);
+          _dialogCountryCode = found.code;
+        } catch (_) {
+          if (cName == 'uk' || cName == 'united kingdom') _dialogCountryCode = 'GB';
+          else if (cName == 'usa' || cName == 'united states') _dialogCountryCode = 'US';
+          else if (cName == 'uae' || cName == 'united arab emirates') _dialogCountryCode = 'AE';
+        }
+      }
+    }
+
     String initialMobile = member['Mobile_Number']?.toString() ?? '';
     initialMobile = initialMobile.replaceAll(' ', '');
+    try {
+      final countryInfo = intl_country.countries.firstWhere((c) => c.code == _dialogCountryCode, orElse: () => intl_country.countries.firstWhere((c) => c.code == 'IN'));
+      final dialCode = '+${countryInfo.dialCode}';
+      if (initialMobile.startsWith(dialCode)) {
+        initialMobile = initialMobile.substring(dialCode.length);
+      } else if (initialMobile.startsWith(countryInfo.dialCode)) {
+        initialMobile = initialMobile.substring(countryInfo.dialCode.length);
+      } else if (initialMobile.startsWith('+91') && _dialogCountryCode == 'IN') {
+        initialMobile = initialMobile.substring(3);
+      } else if (initialMobile.startsWith('91') && _dialogCountryCode == 'IN' && initialMobile.length > 10) {
+        initialMobile = initialMobile.substring(2);
+      }
+    } catch (_) {}
+
     if (initialMobile.length > 5) {
       initialMobile = '${initialMobile.substring(0, 5)} ${initialMobile.substring(5)}';
     }
@@ -3030,40 +2967,16 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             'status': TextEditingController(text: p['status']?.toString() ?? 'Unpaid'),
             'is_existing': TextEditingController(text: 'true'),
           }).toList()
-        : [
-            {
-              'amount': TextEditingController(text: '0.00'),
-              'event_name': TextEditingController(),
-              'from_date': TextEditingController(),
-              'to_date': TextEditingController(),
-              'year': TextEditingController(text: DateTime.now().year.toString()),
-              'status': TextEditingController(text: 'Unpaid'),
-              'is_existing': TextEditingController(text: 'false'),
-            }
-          ];
+        : [];
 
-    String _dialogSex = member['Sex']?.toString() ?? 'Male';
-    if (_dialogSex.isEmpty || _dialogSex == '-- Not Specified --') _dialogSex = 'Male';
+    String? _dialogSex = member['Sex']?.toString();
+    if (_dialogSex != null && (_dialogSex!.isEmpty || _dialogSex == '-- Not Specified --')) _dialogSex = null;
     
-    String _dialogVip = member['VIP']?.toString() ?? 'No';
-    if (_dialogVip.isEmpty || _dialogVip == '-- Not Specified --') _dialogVip = 'No';
+    String? _dialogVip = member['VIP']?.toString();
+    if (_dialogVip != null && (_dialogVip!.isEmpty || _dialogVip == '-- Not Specified --')) _dialogVip = null;
 
     String _dialogLanguage = (member['Language'] == 'Tamil' || member['Language'] == 'Sun Tommy') ? 'Sun Tommy' : 'English';
-    String _dialogCountryCode = 'IN';
-    {
-      String cName = ((member['Country'] ?? member['country']) ?? '').toString().trim().toLowerCase();
-      if (cName.isNotEmpty) {
-        try {
-          final found = intl_country.countries.firstWhere((x) => x.name.toLowerCase() == cName);
-          _dialogCountryCode = found.code;
-        } catch (_) {
-          if (cName == 'uk' || cName == 'united kingdom') _dialogCountryCode = 'GB';
-          else if (cName == 'usa' || cName == 'united states') _dialogCountryCode = 'US';
-          else if (cName == 'uae' || cName == 'united arab emirates') _dialogCountryCode = 'AE';
-        }
-      }
-    }
-    
+
 
     
     bool _isSaving = false;
@@ -3358,7 +3271,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               targetContext = _personalIdentityKey.currentContext;
                             } else if (_addMobileController.text.replaceAll(' ', '').trim().isEmpty || _addMobileController.text.replaceAll(' ', '').trim().length != 10) {
                               targetContext = _contactInfoKey.currentContext;
-                            } else if (_addEmailController.text.trim().isNotEmpty && !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_addEmailController.text.trim())) {
+                            } else if (_addEmailController.text.trim().isNotEmpty && !RegExp(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$").hasMatch(_addEmailController.text.trim())) {
                               targetContext = _contactInfoKey.currentContext;
                             } else if (_addAddress1Controller.text.trim().isEmpty || 
                                        _addCityController.text.trim().isEmpty || 
@@ -3632,8 +3545,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     BuildContext context,
     StateSetter setDialogState,
     Map<String, TextEditingController> controllers,
-    String sex, Function(String) onSexChanged,
-    String vip, Function(String) onVipChanged,
+    String? sex, Function(String?) onSexChanged,
+    String? vip, Function(String?) onVipChanged,
     String? fontFamily, {
     bool isEdit = false,
     bool isEditable = true,
@@ -3687,13 +3600,19 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             label: 'Gender',
             value: sex,
             items: ['Male', 'Female'],
-            onChanged: isEditable ? (v) => onSexChanged(v!) : null,
+            onChanged: isEditable ? onSexChanged : null,
+            requiredMark: true,
+            hint: 'Select Gender',
+            validator: (v) => v == null || v.isEmpty ? _translate('Required', fontFamily) : null,
           ),
           _buildDialogDropdown(
             label: 'VIP Status',
             value: vip,
             items: ['Yes', 'No'],
-            onChanged: isEditable ? (v) => onVipChanged(v!) : null,
+            onChanged: isEditable ? onVipChanged : null,
+            requiredMark: true,
+            hint: 'Select VIP Status',
+            validator: (v) => v == null || v.isEmpty ? _translate('Required', fontFamily) : null,
           ),
           const SizedBox(), // Empty spacer
         ]),
@@ -3710,15 +3629,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           ),
           _buildDialogTextField(
             controller: controllers['email']!,
-            label: 'Email *',
+            label: 'Email',
             icon: Icons.email,
             maxLength: 254,
             enabled: isEditable,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Required';
+                return null;
               }
-              final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value);
+              final bool emailValid = RegExp(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$").hasMatch(value.trim());
               if (!emailValid) {
                 return 'Please enter a valid email address';
               }
@@ -3790,15 +3709,38 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             maxLength: 254,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
-          _buildDialogTextField(
-            controller: controllers['district']!,
-            label: 'District *',
-            icon: Icons.map,
-            fontFamily: fontFamily,
-            enabled: isEditable,
-            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
-            maxLength: 254,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+          FormField<String>(
+            initialValue: controllers['district']!.text,
+            validator: (v) => (v == null || v.trim().isEmpty || v == 'Select District') ? _translate('Required', fontFamily) : null,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            builder: (FormFieldState<String> districtField) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomDistrictSelectField(
+                    initialDistrict: controllers['district']!.text,
+                    selectedCountry: controllers['country']!.text,
+                    selectedState: controllers['state']!.text,
+                    enabled: isEditable,
+                    fontFamily: fontFamily,
+                    onDistrictSelect: (district) {
+                      controllers['district']!.text = district;
+                      districtField.didChange(district);
+                      setDialogState(() {});
+                    },
+                  ),
+                  if (districtField.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 6),
+                      child: Text(
+                        districtField.errorText!,
+                        style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ]),
         _buildResponsiveRow(context, [
@@ -3876,13 +3818,58 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             enabled: isEditable,
-            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
+            validator: (v) {
+              if (v!.trim().isEmpty) return _translate('Required', fontFamily);
+              if (controllers['state']?.text.trim() == 'Tamil Nadu' && !v.trim().startsWith('6')) {
+                return _translate('Tamil Nadu pincode must start with 6', fontFamily);
+              }
+              return null;
+            },
             fontFamily: fontFamily,
+            onChanged: (val) async {
+              if (val.length == 6) {
+                bool success = false;
+                try {
+                  final response = await http.get(Uri.parse('https://api.postalpincode.in/pincode/$val'));
+                  if (response.statusCode == 200) {
+                    final data = jsonDecode(response.body);
+                    if (data is List && data.isNotEmpty && data[0]['Status'] == 'Success') {
+                      final postOffice = data[0]['PostOffice'][0];
+                      setDialogState(() {
+                        if (controllers['country'] != null) controllers['country']!.text = postOffice['Country'] ?? 'India';
+                        if (controllers['state'] != null) controllers['state']!.text = postOffice['State'] ?? 'Tamil Nadu';
+                        if (controllers['district'] != null) controllers['district']!.text = postOffice['District'] ?? '';
+                        if (controllers['city'] != null) controllers['city']!.text = postOffice['Block'] ?? postOffice['Name'] ?? '';
+                      });
+                      success = true;
+                    }
+                  }
+                } catch (_) {}
+                
+                if (!success) {
+                  try {
+                    final fallbackResponse = await http.get(Uri.parse('https://api.zippopotam.us/IN/$val'));
+                    if (fallbackResponse.statusCode == 200) {
+                      final data = jsonDecode(fallbackResponse.body);
+                      if (data != null && data['places'] != null && (data['places'] as List).isNotEmpty) {
+                        final place = data['places'][0];
+                        setDialogState(() {
+                          if (controllers['country'] != null) controllers['country']!.text = data['country'] ?? 'India';
+                          if (controllers['state'] != null) controllers['state']!.text = place['state'] ?? 'Tamil Nadu';
+                          if (controllers['city'] != null) controllers['city']!.text = place['place name'] ?? '';
+                        });
+                      }
+                    }
+                  } catch (_) {}
+                }
+              }
+            },
           ),
         ]),
 
-        _buildSectionHeader(
-          'Events', 
+        if (paymentControllers.isNotEmpty) ...[
+          _buildSectionHeader(
+            'Events', 
           Icons.event,
           fontFamily: fontFamily,
           key: eventsKey,
@@ -3909,8 +3896,15 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 )
               : null,
         ),
-        Builder(
-          builder: (context) {
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final double aw = constraints.maxWidth < 650 ? 650 : (constraints.maxWidth - 48);
+            final double wEvent = aw * 0.22;
+            final double wDate = aw * 0.16;
+            final double wYear = aw * 0.12;
+            final double wStatus = aw * 0.17;
+            final double wAmount = aw * 0.17;
+
             final InputDecoration tableInputDec = InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -3924,21 +3918,22 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 16,
-                  headingRowHeight: 45,
-                  dataRowMinHeight: 65,
-                  dataRowMaxHeight: 65,
-                  headingRowColor: WidgetStateProperty.all(const Color(0xFFF9FAFB)),
-                  columns: [
-                    DataColumn(label: Text(_translate('Event Name', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('From Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('To Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('Year', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('Status', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('Amount *', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                    DataColumn(label: Text(_translate('Action', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF374151)))),
-                  ],
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: DataTable(
+                    columnSpacing: 8,
+                    headingRowHeight: 50,
+                    dataRowMinHeight: 65,
+                    dataRowMaxHeight: 65,
+                    headingRowColor: WidgetStateProperty.all(const Color(0xFFF9FAFB)),
+                    columns: [
+                      DataColumn(label: SizedBox(width: wEvent, child: Text(_translate('Event Name', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                      DataColumn(label: SizedBox(width: wDate, child: Text(_translate('From Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                      DataColumn(label: SizedBox(width: wDate, child: Text(_translate('To Date', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                      DataColumn(label: SizedBox(width: wYear, child: Text(_translate('Year', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                      DataColumn(label: SizedBox(width: wStatus, child: Text(_translate('Status', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                      DataColumn(label: SizedBox(width: wAmount, child: Text(_translate('Amount *', fontFamily), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF374151)), overflow: TextOverflow.ellipsis, maxLines: 2))),
+                    ],
                   rows: [
                     for (int j = 0; j < paymentControllers.length; j++)
                       () {
@@ -3947,211 +3942,172 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                         return DataRow(
                           cells: [
                             DataCell(SizedBox(
-                              width: 150,
+                              width: wEvent,
                               child: TextFormField(
                                 controller: paymentControllers[j]['event_name']!,
-                                enabled: isRowEditable,
+                                readOnly: true,
                                 style: const TextStyle(fontSize: 13),
                                 decoration: tableInputDec,
-                                onChanged: isRowEditable ? (v) {
-                                final activeEvts = _getActiveEvents();
-                                final match = activeEvts.where((e) => e['event_name'] == v).toList();
-                                if (match.isNotEmpty) {
-                                  paymentControllers[j]['amount']!.text = match.first['amount'] ?? '0.00';
-                                  paymentControllers[j]['from_date']!.text = match.first['from_date'] ?? '';
-                                  paymentControllers[j]['to_date']!.text = match.first['to_date'] ?? '';
-                                }
-                                setDialogState(() {});
-                              } : null,
-                              validator: (v) {
-                                final p = paymentControllers[j];
-                                bool isActive = j > 0 || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
-                                return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
-                              },
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                            ),
-                          )),
-                          DataCell(SizedBox(
-                            width: 130,
-                            child: TextFormField(
-                              controller: paymentControllers[j]['from_date'],
-                              style: const TextStyle(fontSize: 13),
-                              readOnly: true,
-                              decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
-                              enabled: isRowEditable,
-                              validator: (v) {
-                                final p = paymentControllers[j];
-                                bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
-                                return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
-                              },
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onTap: isRowEditable ? () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(2000),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (date != null) {
-                                  paymentControllers[j]['from_date']!.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-                                }
-                              } : null,
-                            ),
-                          )),
-                          DataCell(SizedBox(
-                            width: 130,
-                            child: TextFormField(
-                              controller: paymentControllers[j]['to_date'],
-                              style: const TextStyle(fontSize: 13),
-                              readOnly: true,
-                              decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
-                              enabled: isRowEditable,
-                              validator: (v) {
-                                final p = paymentControllers[j];
-                                bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
-                                if (isActive && (v == null || v.trim().isEmpty)) return 'Req';
-
-                                if (v != null && v.isNotEmpty && p['from_date']!.text.isNotEmpty) {
-                                  try {
-                                    final fParts = p['from_date']!.text.split('/');
-                                    final tParts = v.split('/');
-                                    if (fParts.length == 3 && tParts.length == 3) {
-                                      final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
-                                      final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
-                                      if (tD.isBefore(fD)) return 'Invalid';
-                                    }
-                                  } catch (_) {}
-                                }
-                                return null;
-                              },
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onTap: isRowEditable ? () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(2000),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (date != null) {
-                                  paymentControllers[j]['to_date']!.text = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-                                }
-                              } : null,
-                            ),
-                          )),
-                          DataCell(SizedBox(
-                            width: 110,
-                            child: Builder(builder: (context) {
-                              final val = paymentControllers[j]['year']?.text.isNotEmpty == true ? paymentControllers[j]['year']!.text : DateTime.now().year.toString();
-                              final items = List<String>.generate(28, (index) => (2027 - index).toString());
-                              final fromDateText = paymentControllers[j]['from_date']?.text ?? '';
-                              if (fromDateText.isNotEmpty) {
-                                final fromYearStr = fromDateText.split('/').last;
-                                if (int.tryParse(fromYearStr) != null && !items.contains(fromYearStr)) items.add(fromYearStr);
-                              }
-                              final toDateText = paymentControllers[j]['to_date']?.text ?? '';
-                              if (toDateText.isNotEmpty) {
-                                final toYearStr = toDateText.split('/').last;
-                                if (int.tryParse(toYearStr) != null && !items.contains(toYearStr)) items.add(toYearStr);
-                              }
-                              if (!items.contains(val)) items.add(val);
-                              items.sort((a, b) => (int.tryParse(b) ?? 0).compareTo(int.tryParse(a) ?? 0));
-                              return CustomDropdownSearch(
-                                label: '',
-                                height: 40,
-                                value: val,
-                                borderColor: const Color(0xFFE5E7EB),
-                                dropdownItems: items,
-                                isEnabled: isRowEditable,
-                                onChanged: isRowEditable ? (value) {
-                                  if (value != null) {
-                                    setDialogState(() {
-                                      paymentControllers[j]['year']!.text = value;
-                                    });
-                                  }
-                                } : null,
-                              );
-                            }),
-                          )),
-                          DataCell(SizedBox(
-                            width: 120,
-                            child: CustomDropdownSearch(
-                              label: '',
-                              height: 40,
-                              value: paymentControllers[j]['status']?.text.isNotEmpty == true ? paymentControllers[j]['status']!.text : 'Unpaid',
-                              borderColor: const Color(0xFFE5E7EB),
-                              dropdownItems: const ['Paid', 'Unpaid'],
-                              isEnabled: isEditable,
-                              onChanged: isEditable ? (value) {
-                                  if (value != null) {
-                                    if (paymentControllers[j]['status']?.text == 'Paid' && value == 'Unpaid') {
-                                      CustomNotificationDialog.show(
-                                        context,
-                                        type: NotificationType.warning,
-                                        title: 'Not Allowed',
-                                        message: 'Payment status cannot be changed to Unpaid once marked as Paid.',
-                                      );
-                                      setDialogState(() {}); // Force UI to revert dropdown
-                                      return;
-                                    }
-                                    setDialogState(() {
-                                      paymentControllers[j]['status']!.text = value;
-                                    });
-                                  }
-                                } : null,
-                            ),
-                          )),
-                          DataCell(SizedBox(
-                            width: 100,
-                            child: Builder(builder: (context) {
-                              bool isAmountReadOnly = false;
-                              final activeEvts = _getActiveEvents();
-                              final evtName = paymentControllers[j]['event_name']!.text.trim();
-                              if (evtName.isNotEmpty) {
-                                isAmountReadOnly = activeEvts.any((e) => e['event_name'] == evtName);
-                              }
-                              return TextFormField(
-                                controller: paymentControllers[j]['amount'],
-                                style: const TextStyle(fontSize: 13),
-                                decoration: tableInputDec.copyWith(
-                                  fillColor: isAmountReadOnly ? Colors.grey[200] : Colors.white,
-                                  filled: true,
-                                ),
-                                readOnly: isAmountReadOnly,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-                                enabled: isEditable,
-                                onTap: isEditable && !isAmountReadOnly ? () {
-                                  if (paymentControllers[j]['amount']!.text == '0.00' || paymentControllers[j]['amount']!.text == '0') {
-                                    paymentControllers[j]['amount']!.clear();
-                                  }
-                                } : null,
                                 validator: (v) {
                                   final p = paymentControllers[j];
-                                  bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty;
+                                  bool isActive = j > 0 || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
                                   return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
                                 },
                                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                              );
-                            }),
-                          )),
-                          DataCell(
-                            onRemovePayment != null && paymentControllers.length > 1 && !isExistingRow
-                                ? IconButton(
-                                    icon: const Icon(Icons.remove_circle, color: Colors.grey),
-                                    onPressed: isRowEditable ? () => onRemovePayment(j) : null,
-                                    tooltip: 'Remove event',
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                        ],
-                      );
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: wDate,
+                              child: TextFormField(
+                                controller: paymentControllers[j]['from_date'],
+                                style: const TextStyle(fontSize: 13),
+                                decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
+                                readOnly: true,
+                                enabled: isRowEditable,
+                                validator: (v) {
+                                  final p = paymentControllers[j];
+                                  bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['to_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                  if (isActive && (v == null || v.trim().isEmpty)) return 'Req';
+                                  return null;
+                                },
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                                onTap: null,
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: wDate,
+                              child: TextFormField(
+                                controller: paymentControllers[j]['to_date'],
+                                style: const TextStyle(fontSize: 13),
+                                decoration: tableInputDec.copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 16, color: Colors.grey)),
+                                readOnly: true,
+                                enabled: isRowEditable,
+                                validator: (v) {
+                                  final p = paymentControllers[j];
+                                  bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || (p['amount']!.text.isNotEmpty && p['amount']!.text != '0.00' && p['amount']!.text != '0');
+                                  if (isActive && (v == null || v.trim().isEmpty)) return 'Req';
+
+                                  if (v != null && v.isNotEmpty && p['from_date']!.text.isNotEmpty) {
+                                    try {
+                                      final fParts = p['from_date']!.text.split('/');
+                                      final tParts = v.split('/');
+                                      if (fParts.length == 3 && tParts.length == 3) {
+                                        final fD = DateTime(int.parse(fParts[2]), int.parse(fParts[1]), int.parse(fParts[0]));
+                                        final tD = DateTime(int.parse(tParts[2]), int.parse(tParts[1]), int.parse(tParts[0]));
+                                        if (tD.isBefore(fD)) return 'Invalid';
+                                      }
+                                    } catch (_) {}
+                                  }
+                                  return null;
+                                },
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                                onTap: null,
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: wYear,
+                              child: Builder(builder: (context) {
+                                final val = paymentControllers[j]['year']?.text.isNotEmpty == true ? paymentControllers[j]['year']!.text : DateTime.now().year.toString();
+                                final items = List<String>.generate(28, (index) => (2027 - index).toString());
+                                final fromDateText = paymentControllers[j]['from_date']?.text ?? '';
+                                if (fromDateText.isNotEmpty) {
+                                  final fromYearStr = fromDateText.split('/').last;
+                                  if (int.tryParse(fromYearStr) != null && !items.contains(fromYearStr)) items.add(fromYearStr);
+                                }
+                                final toDateText = paymentControllers[j]['to_date']?.text ?? '';
+                                if (toDateText.isNotEmpty) {
+                                  final toYearStr = toDateText.split('/').last;
+                                  if (int.tryParse(toYearStr) != null && !items.contains(toYearStr)) items.add(toYearStr);
+                                }
+                                if (!items.contains(val)) items.add(val);
+                                items.sort((a, b) => (int.tryParse(b) ?? 0).compareTo(int.tryParse(a) ?? 0));
+                                return CustomDropdownSearch(
+                                  label: '',
+                                  height: 40,
+                                  value: val,
+                                  borderColor: const Color(0xFFE5E7EB),
+                                  dropdownItems: items,
+                                  isEnabled: false,
+                                  onChanged: null,
+                                );
+                              }),
+                            )),
+                            DataCell(SizedBox(
+                              width: wStatus,
+                              child: CustomDropdownSearch(
+                                label: '',
+                                height: 40,
+                                value: paymentControllers[j]['status']?.text.isNotEmpty == true ? paymentControllers[j]['status']!.text : 'Unpaid',
+                                borderColor: const Color(0xFFE5E7EB),
+                                dropdownMap: {
+                                  'Paid': _translate('Paid', fontFamily),
+                                  'Unpaid': _translate('Unpaid', fontFamily),
+                                },
+                                isEnabled: isEditable,
+                                onChanged: isEditable ? (value) {
+                                    if (value != null) {
+                                      if (paymentControllers[j]['status']?.text == 'Paid' && value == 'Unpaid') {
+                                        CustomNotificationDialog.show(
+                                          context,
+                                          type: NotificationType.warning,
+                                          title: 'Not Allowed',
+                                          message: 'Payment status cannot be changed to Unpaid once marked as Paid.',
+                                        );
+                                        setDialogState(() {}); // Force UI to revert dropdown
+                                        return;
+                                      }
+                                      setDialogState(() {
+                                        paymentControllers[j]['status']!.text = value;
+                                      });
+                                    }
+                                  } : null,
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: wAmount,
+                              child: Builder(builder: (context) {
+                                bool isAmountReadOnly = false;
+                                final activeEvts = _getActiveEvents();
+                                final evtName = paymentControllers[j]['event_name']!.text.trim();
+                                if (evtName.isNotEmpty) {
+                                  isAmountReadOnly = activeEvts.any((e) => e['event_name'] == evtName);
+                                }
+                                return TextFormField(
+                                  controller: paymentControllers[j]['amount'],
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: tableInputDec.copyWith(
+                                    fillColor: isAmountReadOnly ? Colors.grey[200] : Colors.white,
+                                    filled: true,
+                                  ),
+                                  readOnly: isAmountReadOnly,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
+                                  enabled: isEditable,
+                                  onTap: isEditable && !isAmountReadOnly ? () {
+                                    if (paymentControllers[j]['amount']!.text == '0.00' || paymentControllers[j]['amount']!.text == '0') {
+                                      paymentControllers[j]['amount']!.clear();
+                                    }
+                                  } : null,
+                                  validator: (v) {
+                                    final p = paymentControllers[j];
+                                    bool isActive = j > 0 || p['event_name']!.text.trim().isNotEmpty || p['from_date']!.text.isNotEmpty || p['to_date']!.text.isNotEmpty;
+                                    return (isActive && (v == null || v.trim().isEmpty)) ? 'Req' : null;
+                                  },
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                );
+                              }),
+                            )),
+                          ],
+                        );
                     }(),
                   ],
+                ),
                 ),
               ),
             );
           }
         ),
+        ],
       ],
     );
   }
@@ -4232,15 +4188,21 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
   Widget _buildDialogDropdown({
     required String label,
-    required String value,
+    required String? value,
     required List<String> items,
     required ValueChanged<String?>? onChanged,
+    FormFieldValidator<String>? validator,
+    bool requiredMark = false,
+    String? hint,
   }) {
     return CustomDropdownSearch(
       label: label,
       value: value,
       dropdownItems: items,
       onChanged: onChanged,
+      validator: validator,
+      requiredMark: requiredMark,
+      hint: hint,
       height: 52,
       borderColor: const Color(0xFFE2E8F0),
       isSearchable: false,
@@ -4341,12 +4303,10 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   Widget _buildSearchAndFilters() {
     final bool isMobile = MediaQuery.of(context).size.width < 800;
 
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Search Bars Row/Column
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Search Bars Row/Column
           if (isMobile)
             Column(
               children: [
@@ -4410,6 +4370,23 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   duration: const Duration(milliseconds: 300),
                   crossFadeState: _isSearchExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                   alignment: Alignment.centerRight,
+                  layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
+                    return Stack(
+                      clipBehavior: Clip.hardEdge,
+                      alignment: Alignment.centerRight,
+                      children: <Widget>[
+                        Positioned(
+                          key: bottomChildKey,
+                          right: 0,
+                          child: bottomChild,
+                        ),
+                        Positioned(
+                          key: topChildKey,
+                          child: topChild,
+                        ),
+                      ],
+                    );
+                  },
                   firstChild: Container(
                     height: 48,
                     width: 48,
@@ -4423,8 +4400,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       onPressed: () => setState(() => _isSearchExpanded = true),
                     ),
                   ),
-                  secondChild: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 450),
+                  secondChild: SizedBox(
+                    width: 450,
                     child: _buildSearchField(
                       controller: _commonSearchController,
                       hint: 'Search by Code, Name, Mobile or Email...',
@@ -4492,60 +4469,72 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             ),
           if (_showAdvancedFilters) ...[
             const SizedBox(height: 16),
-            // Filters Wrap
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _buildDynamicDropdown('COUNTRY', _selectedCountry, _countries, (val) {
-                  setState(() { 
-                    _selectedCountry = val!; 
-                    _selectedState = 'All States';
-                    _selectedDistrict = 'All Districts';
-                    _selectedCity = 'All Cities';
-                    _filterMembers(); 
-                  });
-                }),
-                _buildDynamicDropdown('STATE', _selectedState, _dynamicStates, (val) {
-                  setState(() { 
-                    _selectedState = val!; 
-                    _selectedDistrict = 'All Districts';
-                    _selectedCity = 'All Cities';
-                    _filterMembers(); 
-                  });
-                }),
-                _buildDynamicDropdown('DISTRICT', _selectedDistrict, _dynamicDistricts, (val) {
-                  setState(() { 
-                    _selectedDistrict = val!; 
-                    _selectedCity = 'All Cities';
-                    _filterMembers(); 
-                  });
-                }),
-                _buildDynamicDropdown('CITY OR TALUK', _selectedCity, _dynamicCities, (val) {
-                  setState(() { 
-                    _selectedCity = val!; 
-                    _filterMembers(); 
-                  });
-                }),
-                _buildDynamicDropdown('EVENT YEAR', _selectedYear, _years.map((y) => {'val': y, 'lang': 'English'}).toList(), (val) {
-                  setState(() { 
-                    _selectedYear = val!; 
-                    _selectedEventName = 'All Events';
-                    _filterMembers(); 
-                  });
-                }),
-                _buildDynamicDropdown('EVENT NAME', _selectedEventName, _dynamicEvents, (val) {
-                  setState(() { _selectedEventName = val!; _filterMembers(); });
-                }),
-                _buildDynamicDropdown('STATUS', _selectedPaymentStatus, _paymentStatuses, (val) {
-                  setState(() { _selectedPaymentStatus = val!; _filterMembers(); });
-                }),
-              ],
+            // Filters Builder
+            Builder(
+              builder: (context) {
+                final filterWidgets = [
+                  _buildDynamicDropdown('COUNTRY', _selectedCountry, _countries, (val) {
+                    setState(() { 
+                      _selectedCountry = val!; 
+                      _selectedState = 'All States';
+                      _selectedDistrict = 'All Districts';
+                      _selectedCity = 'All Cities';
+                      _filterMembers(); 
+                    });
+                  }),
+                  _buildDynamicDropdown('STATE', _selectedState, _dynamicStates, (val) {
+                    setState(() { 
+                      _selectedState = val!; 
+                      _selectedDistrict = 'All Districts';
+                      _selectedCity = 'All Cities';
+                      _filterMembers(); 
+                    });
+                  }),
+                  _buildDynamicDropdown('DISTRICT', _selectedDistrict, _dynamicDistricts, (val) {
+                    setState(() { 
+                      _selectedDistrict = val!; 
+                      _selectedCity = 'All Cities';
+                      _filterMembers(); 
+                    });
+                  }),
+                  _buildDynamicDropdown('CITY OR TALUK', _selectedCity, _dynamicCities, (val) {
+                    setState(() { 
+                      _selectedCity = val!; 
+                      _filterMembers(); 
+                    });
+                  }),
+                  _buildDynamicDropdown('EVENT YEAR', _selectedYear, _years.map((y) => {'val': y, 'lang': 'English'}).toList(), (val) {
+                    setState(() { 
+                      _selectedYear = val!; 
+                      _selectedEventName = 'All Events';
+                      _filterMembers(); 
+                    });
+                  }),
+                  _buildDynamicDropdown('EVENT NAME', _selectedEventName, _dynamicEvents, (val) {
+                    setState(() { _selectedEventName = val!; _filterMembers(); });
+                  }),
+                  _buildDynamicDropdown('STATUS', _selectedPaymentStatus, _paymentStatuses, (val) {
+                    setState(() { _selectedPaymentStatus = val!; _filterMembers(); });
+                  }),
+                ];
+
+                final bool isMobile = MediaQuery.of(context).size.width < 1000;
+                if (isMobile) {
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: filterWidgets,
+                  );
+                } else {
+                  return Row(
+                    children: filterWidgets.map((w) => Expanded(child: w)).toList().expand((w) => [w, const SizedBox(width: 12)]).toList()..removeLast(),
+                  );
+                }
+              }
             ),
           ],
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildDynamicDropdown(String label, String selectedValue, List<Map<String, String>> items, ValueChanged<String?> onChanged) {
@@ -4553,12 +4542,26 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     final List<String> dropdownItems = items.map((item) => item['val']!).toList();
     final String currentVal = items.any((i) => i['val'] == selectedValue) ? selectedValue : items.first['val']!;
 
+    final Map<String, String> itemFonts = {};
+    for (var item in items) {
+      final text = item['val']!;
+      final lang = item['lang'];
+      bool hasUnicodeTamil = text.runes.any((r) => r >= 0x0B80 && r <= 0x0BFF);
+      if ((lang == 'Tamil' || lang == 'Sun Tommy') && !hasUnicodeTamil) {
+        itemFonts[text] = 'Sun Tommy';
+      } else {
+        itemFonts[text] = 'Inter';
+      }
+    }
+
     return SizedBox(
       width: isMobile ? (MediaQuery.of(context).size.width - 52) / 2 : 170,
       child: CustomDropdownSearch(
         label: label,
         value: currentVal,
         dropdownItems: dropdownItems,
+        itemFonts: itemFonts,
+        searchFontFamily: _nameSearchLang,
         onChanged: onChanged,
         height: 48,
       ),
@@ -4762,7 +4765,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               DataCell(Text(member['Code'].toString(), style: const TextStyle(fontWeight: FontWeight.bold))),
               DataCell(_buildTamilText(member['Name'], isTamil)),
               DataCell(Text(member['Mobile_Number'] ?? '-')),
-              DataCell(Text('₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
+              DataCell(Text('Ã¢â€šÂ¹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
               DataCell(_buildTamilText(member['Father_Name'], isTamil)),
               DataCell(Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -4770,9 +4773,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               )),
               DataCell(_buildTamilText(member['City'], isTamil)),
               DataCell(_buildTamilText(member['District'], isTamil)),
-              DataCell(_buildTamilText(member['State'], isTamil)),
+              DataCell(Text(member['State']?.toString() ?? '-')),
               DataCell(Text(member['Sex'] ?? '-')),
-              DataCell(_buildTamilText(member['Country']?.toString(), isTamil)),
+              DataCell(Text(member['Country']?.toString() ?? '-')),
               DataCell(Text(member['Pincode']?.toString() ?? '-')),
               DataCell(Row(
                 mainAxisSize: MainAxisSize.min,
@@ -4921,7 +4924,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 _buildTextButton('Next', _currentPage < _totalPages ? () => setState(() => _currentPage++) : null),
                 
                 // Last Button
-                _buildTextButton('»', _currentPage < _totalPages ? () => setState(() => _currentPage = _totalPages) : null),
+                _buildTextButton('Ã‚Â»', _currentPage < _totalPages ? () => setState(() => _currentPage = _totalPages) : null),
               ],
             ),
           );
@@ -5035,9 +5038,9 @@ class _MobileNumberSpaceFormatter extends TextInputFormatter {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // Custom Mobile Number Field with Overlay Country Picker (Light Theme)
-// ─────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 class _CustomMobileNumberField extends StatefulWidget {
   final TextEditingController controller;
   final bool enabled;
@@ -5871,83 +5874,83 @@ class _MultiYearDropdownFieldState extends State<_MultiYearDropdownField> {
 String _translate(String text, String? fontFamily) {
   if (fontFamily != 'Sun Tommy') return text;
   final Map<String, String> translations = {
-    'Personal Identity': 'தனிப்பட்ட அடையாளம்',
-    'Member Code': 'உறுப்பினர் குறியீடு',
-    'Full Name': 'முழு பெயர்',
-    'Full Name *': 'முழு பெயர் *',
-    "Father's Name": 'தந்தை பெயர்',
-    'Gender': 'பாலினம்',
-    'Male': 'ஆண்',
-    'Female': 'பெண்',
-    'Other': 'மற்றவை',
-    'VIP Status': 'விஐபி அந்தஸ்து',
-    'Yes': 'ஆம்',
-    'No': 'இல்லை',
-    'Contact Information': 'தொடர்புத் தகவல்',
-    'Mobile Number *': 'கைபேசி எண் *',
-    'Mobile Number': 'கைபேசி எண்',
-    'Email *': 'மின்னஞ்சல் *',
-    'Email': 'மின்னஞ்சல்',
-    'Cancel': 'ரத்து செய்',
-    'Save Member': 'உறுப்பினரைச் சேமி',
-    'Update Member': 'உறுப்பினரைப் புதுப்பி',
-    'Address Details': 'முகவரி விவரங்கள்',
-    'Address Line 1 *': 'முகவரி வரி 1 *',
-    'Address Line 1': 'முகவரி வரி 1',
-    'Address Line 2 *': 'முகவரி வரி 2 *',
-    'Address Line 2': 'முகவரி வரி 2',
-    'Address Line 3': 'முகவரி வரி 3',
-    'Address Line 4': 'முகவரி வரி 4',
-    'City': 'நகரம்',
-    'District': 'மாவட்டம்',
-    'State': 'மாநிலம்',
-    'Country': 'நாடு',
-    'PinCode': 'அஞ்சல் குறியீடு',
-    'Events': 'நிகழ்வுகள்',
-    'Add Event': 'நிகழ்வைச் சேர்',
-    'Event Name': 'நிகழ்வின் பெயர்',
-    'Amount': 'தொகை',
-    'Amount *': 'தொகை *',
-    'India': 'இந்தியா',
-    'Tamil Nadu': 'தமிழ்நாடு',
-    'Kerala': 'கேரளா',
-    'Karnataka': 'கர்நாடகா',
-    'Andhra Pradesh': 'ஆந்திரப் பிரதேசம்',
-    'Telangana': 'தெலுங்கானா',
-    'Puducherry': 'புதுச்சேரி',
-    'Payment Status': 'கட்டண நிலை',
-    'Select Status': 'நிலையைத் தேர்ந்தெடு',
-    'Please fill the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய நிகழ்வு விவரங்களை நிரப்பவும்.',
-    'Please fill all the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய அனைத்து நிகழ்வு விவரங்களையும் நிரப்பவும்.',
-    'Validation Error': 'சரிபார்ப்பு பிழை',
-    'Paid': 'செலுத்தப்பட்டது',
-    'Unpaid': 'செலுத்தப்படவில்லை',
-    'Required': 'கட்டாயம்',
-    'Please enter a valid email': 'சரியான மின்னஞ்சலை உள்ளிடவும்',
-    'Search state...': 'மாநிலத்தைத் தேடு...',
-    'Search country or code...': 'நாடு அல்லது குறியீட்டைத் தேடு...',
-    'Select State': 'மாநிலத்தைத் தேர்ந்தெடு',
-    'Remove': 'நீக்கு',
-    'From Date': 'தொடக்க தேதி',
-    'To Date': 'முடிவு தேதி',
-    'Year': 'ஆண்டு',
-    'Status': 'நிலை',
-    'Action': 'செயல்',
-    'Invalid Mobile Number': 'தவறான கைபேசி எண்',
-    'Enter a valid': 'சரியானதை உள்ளிடவும்',
-    'digit mobile number': 'இலக்க கைபேசி எண்',
-    'Enter between': 'இடையே உள்ளிடவும்',
-    'and': 'மற்றும்',
-    'digits': 'இலக்கங்கள்',
-    'No states found for this country': 'இந்த நாட்டிற்கு மாநிலங்கள் காணப்படவில்லை',
+    'Personal Identity': 'Ã Â®Â¤Ã Â®Â©Ã Â®Â¿Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸ Ã Â®â€¦Ã Â®Å¸Ã Â¯Ë†Ã Â®Â¯Ã Â®Â¾Ã Â®Â³Ã Â®Â®Ã Â¯Â',
+    'Member Code': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯Â',
+    'Full Name': 'Ã Â®Â®Ã Â¯ÂÃ Â®Â´Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
+    'Full Name *': 'Ã Â®Â®Ã Â¯ÂÃ Â®Â´Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â *',
+    "Father's Name": 'Ã Â®Â¤Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë† Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
+    'Gender': 'Ã Â®ÂªÃ Â®Â¾Ã Â®Â²Ã Â®Â¿Ã Â®Â©Ã Â®Â®Ã Â¯Â',
+    'Male': 'Ã Â®â€ Ã Â®Â£Ã Â¯Â',
+    'Female': 'Ã Â®ÂªÃ Â¯â€ Ã Â®Â£Ã Â¯Â',
+    'Other': 'Ã Â®Â®Ã Â®Â±Ã Â¯ÂÃ Â®Â±Ã Â®ÂµÃ Â¯Ë†',
+    'VIP Status': 'Ã Â®ÂµÃ Â®Â¿Ã Â®ÂÃ Â®ÂªÃ Â®Â¿ Ã Â®â€¦Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¸Ã Â¯ÂÃ Â®Â¤Ã Â¯Â',
+    'Yes': 'Ã Â®â€ Ã Â®Â®Ã Â¯Â',
+    'No': 'Ã Â®â€¡Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
+    'Contact Information': 'Ã Â®Â¤Ã Â¯Å Ã Â®Å¸Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â®â€¢Ã Â®ÂµÃ Â®Â²Ã Â¯Â',
+    'Mobile Number *': 'Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â *',
+    'Mobile Number': 'Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
+    'Email *': 'Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â *',
+    'Email': 'Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â',
+    'Cancel': 'Ã Â®Â°Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Å¡Ã Â¯â€ Ã Â®Â¯Ã Â¯Â',
+    'Save Member': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â®Ã Â®Â¿',
+    'Update Member': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿',
+    'Address Details': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
+    'Address Line 1 *': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 1 *',
+    'Address Line 1': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 1',
+    'Address Line 2 *': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 2 *',
+    'Address Line 2': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 2',
+    'Address Line 3': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 3',
+    'Address Line 4': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 4',
+    'City': 'Ã Â®Â¨Ã Â®â€¢Ã Â®Â°Ã Â®Â®Ã Â¯Â',
+    'District': 'Ã Â®Â®Ã Â®Â¾Ã Â®ÂµÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â®Ã Â¯Â',
+    'State': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â®Ã Â¯Â',
+    'Country': 'Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â',
+    'PinCode': 'Ã Â®â€¦Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯Â',
+    'Events': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
+    'Add Event': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â',
+    'Event Name': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â®Â¿Ã Â®Â©Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
+    'Amount': 'Ã Â®Â¤Ã Â¯Å Ã Â®â€¢Ã Â¯Ë†',
+    'Amount *': 'Ã Â®Â¤Ã Â¯Å Ã Â®â€¢Ã Â¯Ë† *',
+    'India': 'Ã Â®â€¡Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾',
+    'Tamil Nadu': 'Ã Â®Â¤Ã Â®Â®Ã Â®Â¿Ã Â®Â´Ã Â¯ÂÃ Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â',
+    'Kerala': 'Ã Â®â€¢Ã Â¯â€¡Ã Â®Â°Ã Â®Â³Ã Â®Â¾',
+    'Karnataka': 'Ã Â®â€¢Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â®â€¢Ã Â®Â¾',
+    'Andhra Pradesh': 'Ã Â®â€ Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â®Â¿Ã Â®Â°Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¡Ã Â®Â®Ã Â¯Â',
+    'Telangana': 'Ã Â®Â¤Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â¾Ã Â®Â©Ã Â®Â¾',
+    'Puducherry': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Å¡Ã Â¯ÂÃ Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â®Â¿',
+    'Payment Status': 'Ã Â®â€¢Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â£ Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†',
+    'Select Status': 'Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†Ã Â®Â¯Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯â€ Ã Â®Å¸Ã Â¯Â',
+    'Please fill the current event details before adding a new one.': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â¯ÂÃ Â®Â©Ã Â¯Â Ã Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯â€¹Ã Â®Â¤Ã Â¯Ë†Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Â Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Ë† Ã Â®Â¨Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â.',
+    'Please fill all the current event details before adding a new one.': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â¯ÂÃ Â®Â©Ã Â¯Â Ã Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯â€¹Ã Â®Â¤Ã Â¯Ë†Ã Â®Â¯ Ã Â®â€¦Ã Â®Â©Ã Â¯Ë†Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Â Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Ë†Ã Â®Â¯Ã Â¯ÂÃ Â®Â®Ã Â¯Â Ã Â®Â¨Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â.',
+    'Validation Error': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®ÂªÃ Â®Â¾Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â®Â¿Ã Â®Â´Ã Â¯Ë†',
+    'Paid': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¤Ã Â¯Â',
+    'Unpaid': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â®ÂµÃ Â®Â¿Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
+    'Required': 'Ã Â®â€¢Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¾Ã Â®Â¯Ã Â®Â®Ã Â¯Â',
+    'Please enter a valid email': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾Ã Â®Â© Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Ë† Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
+    'Search state...': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¸Ã Â¯Â...',
+    'Search country or code...': 'Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â Ã Â®â€¦Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â®Â¤Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¸Ã Â¯Â...',
+    'Select State': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯â€ Ã Â®Å¸Ã Â¯Â',
+    'Remove': 'Ã Â®Â¨Ã Â¯â‚¬Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢Ã Â¯Â',
+    'From Date': 'Ã Â®Â¤Ã Â¯Å Ã Â®Å¸Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢ Ã Â®Â¤Ã Â¯â€¡Ã Â®Â¤Ã Â®Â¿',
+    'To Date': 'Ã Â®Â®Ã Â¯ÂÃ Â®Å¸Ã Â®Â¿Ã Â®ÂµÃ Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â¤Ã Â®Â¿',
+    'Year': 'Ã Â®â€ Ã Â®Â£Ã Â¯ÂÃ Â®Å¸Ã Â¯Â',
+    'Status': 'Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†',
+    'Action': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â¯Ã Â®Â²Ã Â¯Â',
+    'Invalid Mobile Number': 'Ã Â®Â¤Ã Â®ÂµÃ Â®Â±Ã Â®Â¾Ã Â®Â© Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
+    'Enter a valid': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾Ã Â®Â©Ã Â®Â¤Ã Â¯Ë† Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
+    'digit mobile number': 'Ã Â®â€¡Ã Â®Â²Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢ Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
+    'Enter between': 'Ã Â®â€¡Ã Â®Å¸Ã Â¯Ë†Ã Â®Â¯Ã Â¯â€¡ Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
+    'and': 'Ã Â®Â®Ã Â®Â±Ã Â¯ÂÃ Â®Â±Ã Â¯ÂÃ Â®Â®Ã Â¯Â',
+    'digits': 'Ã Â®â€¡Ã Â®Â²Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
+    'No states found for this country': 'Ã Â®â€¡Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤ Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¿Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â Ã Â®â€¢Ã Â®Â¾Ã Â®Â£Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â®ÂµÃ Â®Â¿Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
   };
   if (text.startsWith('Add New') && text.endsWith('Member')) {
     final middle = text.substring('Add New'.length, text.length - 'Member'.length).trim();
-    return middle.isEmpty ? 'புதிய உறுப்பினரைச் சேர்' : 'புதிய ${middle} உறுப்பினரைச் சேர்';
+    return middle.isEmpty ? 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â' : 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ ${middle} Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â';
   }
   if (text.startsWith('Edit') && text.endsWith('Member')) {
     final middle = text.substring('Edit'.length, text.length - 'Member'.length).trim();
-    return middle.isEmpty ? 'உறுப்பினரைப் புதுப்பி' : '${middle} உறுப்பினரைப் புதுப்பி';
+    return middle.isEmpty ? 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿' : '${middle} Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿';
   }
   return translations[text] ?? text;
 }
@@ -6465,3 +6468,285 @@ class _EventNameAutocompleteState extends State<_EventNameAutocomplete> {
     );
   }
 }
+
+class CustomDistrictSelectField extends StatefulWidget {
+  final String initialDistrict;
+  final String selectedCountry;
+  final String selectedState;
+  final Function(String) onDistrictSelect;
+  final bool enabled;
+  final String? fontFamily;
+
+  const CustomDistrictSelectField({
+    Key? key,
+    required this.initialDistrict,
+    required this.selectedCountry,
+    required this.selectedState,
+    required this.onDistrictSelect,
+    this.enabled = true,
+    this.fontFamily,
+  }) : super(key: key);
+
+  @override
+  State<CustomDistrictSelectField> createState() => _CustomDistrictSelectFieldState();
+}
+
+class _CustomDistrictSelectFieldState extends State<CustomDistrictSelectField> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  late String _selectedDistrict;
+  bool _isDropdownOpen = false;
+  List<String> _dynamicDistricts = [];
+  bool _isLoading = false;
+  
+  static const List<String> fallbackDistrictsList = [
+    'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
+    'Dindigul', 'Erode', 'Kallakurichi', 'Kanchipuram', 'Kanyakumari', 'Karur',
+    'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal',
+    'Nilgiris', 'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet',
+    'Salem', 'Sivaganga', 'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi',
+    'Tiruchirappalli', 'Tirunelveli', 'Tirupathur', 'Tiruppur', 'Tiruvallur',
+    'Tiruvannamalai', 'Tiruvarur', 'Vellore', 'Viluppuram', 'Virudhunagar'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDistrict = widget.initialDistrict.isEmpty ? '' : widget.initialDistrict;
+    _fetchDistricts(widget.selectedCountry, widget.selectedState);
+  }
+  
+  @override
+  void didUpdateWidget(CustomDistrictSelectField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialDistrict != widget.initialDistrict && widget.initialDistrict.isNotEmpty) {
+      setState(() {
+        _selectedDistrict = widget.initialDistrict;
+      });
+    }
+    if (oldWidget.selectedState != widget.selectedState || oldWidget.selectedCountry != widget.selectedCountry) {
+      _fetchDistricts(widget.selectedCountry, widget.selectedState);
+      if (widget.selectedState != oldWidget.selectedState) {
+        setState(() {
+          _selectedDistrict = 'Select District';
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onDistrictSelect('');
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchDistricts(String countryName, String stateName) async {
+    setState(() => _isLoading = true);
+    
+    // For Tamil Nadu, we specifically want the exact 38 districts, not the huge city list
+    if (countryName == 'India' && stateName == 'Tamil Nadu') {
+      setState(() {
+        _dynamicDistricts = List.from(fallbackDistrictsList);
+        _dynamicDistricts.sort();
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final jsonString = await rootBundle.loadString('packages/csc_picker/lib/assets/country.json');
+      final List<dynamic> data = json.decode(jsonString);
+      
+      final country = data.firstWhere((c) => c['name'] == countryName, orElse: () => null);
+      if (country != null && country['state'] != null && (country['state'] as List).isNotEmpty) {
+        final List<dynamic> statesData = country['state'];
+        final stateData = statesData.firstWhere((s) => s['name'] == stateName, orElse: () => null);
+        if (stateData != null && stateData['city'] != null && (stateData['city'] as List).isNotEmpty) {
+          final List<dynamic> citiesData = stateData['city'];
+          setState(() {
+            _dynamicDistricts = citiesData.map((c) => c['name'].toString()).toList();
+            _dynamicDistricts.sort();
+          });
+        } else {
+          setState(() {
+            _dynamicDistricts = [];
+          });
+        }
+      } else {
+        setState(() {
+          _dynamicDistricts = [];
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _dynamicDistricts = [];
+      });
+    }
+    
+    if (_dynamicDistricts.isEmpty && stateName.isNotEmpty && stateName != 'Select State') {
+      if (mounted) {
+        setState(() {
+          _selectedDistrict = 'N/A';
+        });
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onDistrictSelect('N/A');
+      });
+    }
+
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _toggleDropdown() {
+    if (!widget.enabled) return;
+    if (_isDropdownOpen) {
+      _removeOverlay();
+    } else {
+      _showOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    final availableHeightBelow = screenHeight - position.dy - size.height - 24;
+    final availableHeightAbove = position.dy - 48;
+    
+    final bool openUpwards = availableHeightBelow < 250 && availableHeightAbove > availableHeightBelow;
+    
+    double dropdownHeight = 350.0;
+    if (openUpwards && dropdownHeight > availableHeightAbove) {
+      dropdownHeight = availableHeightAbove;
+    } else if (!openUpwards && dropdownHeight > availableHeightBelow) {
+      dropdownHeight = availableHeightBelow > 100 ? availableHeightBelow : 100;
+    }
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _removeOverlay,
+              behavior: HitTestBehavior.opaque,
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: Offset(0, openUpwards ? -dropdownHeight - 4 : size.height + 4),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              child: Container(
+                width: size.width,
+                height: dropdownHeight,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFFE40000)))
+                    : _dynamicDistricts.isEmpty
+                        ? Center(child: Text(_translate("No districts found", widget.fontFamily), style: const TextStyle(color: Color(0xFF64748B))))
+                        : _StateDropdownPanel(
+                            initialState: _selectedDistrict,
+                            statesList: _dynamicDistricts,
+                            fontFamily: widget.fontFamily,
+                            onSelect: (district) {
+                              setState(() => _selectedDistrict = district);
+                              widget.onDistrictSelect(district);
+                              _removeOverlay();
+                            },
+                          ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() => _isDropdownOpen = true);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    if (mounted) setState(() => _isDropdownOpen = false);
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggleDropdown,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            label: Text(_translate('District *', widget.fontFamily)),
+            labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+            filled: true,
+            fillColor: widget.enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFF1F5F9), width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE40000), width: 2),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.map_outlined, color: Color(0xFF94A3B8), size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _isLoading 
+                        ? const SizedBox(height: 15, width: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE40000)))
+                        : Text(
+                            _selectedDistrict.isEmpty ? 'Select District' : _selectedDistrict,
+                            style: TextStyle(
+                              color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                              fontSize: 15,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                _isDropdownOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                color: const Color(0xFF64748B),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+

@@ -504,115 +504,26 @@ class _AdminListScreenState extends State<AdminListScreen> {
         children: [
           const Text('Login Status Overview', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
-          Flex(
-            direction: isMobile ? Axis.vertical : Axis.horizontal,
-            crossAxisAlignment: isMobile ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 200,
-                width: isMobile ? double.infinity : 250,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: total.toDouble() > 0 ? (total.toDouble() * 1.2) : 1,
-                    barTouchData: BarTouchData(enabled: false),
-                    titlesData: FlTitlesData(
-                      show: true,
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          getTitlesWidget: (double value, TitleMeta meta) {
-                            const style = TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14);
-                            Widget text;
-                            switch (value.toInt()) {
-                              case 0:
-                                text = const Text('Active', style: style);
-                                break;
-                              case 1:
-                                text = const Text('Inactive', style: style);
-                                break;
-                              default:
-                                text = const Text('');
-                                break;
-                            }
-                            return SideTitleWidget(meta: meta, child: text);
-                          },
-                        ),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 30,
-                          getTitlesWidget: (value, meta) {
-                            if (value == value.toInt()) {
-                              return Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12));
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                      ),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    barGroups: [
-                      BarChartGroupData(
-                        x: 0,
-                        barRods: [
-                          BarChartRodData(
-                            toY: activeCount.toDouble(),
-                            color: const Color(0xFF22C55E),
-                            width: 50,
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          ),
-                        ],
-                      ),
-                      BarChartGroupData(
-                        x: 1,
-                        barRods: [
-                          BarChartRodData(
-                            toY: inactiveCount.toDouble(),
-                            color: const Color(0xFFEF4444),
-                            width: 50,
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+          isMobile 
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildStatCard('Total Logins', total.toString(), Icons.people_alt_rounded, const Color(0xFF3B82F6)),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Active', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF22C55E)),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Inactive', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFEF4444)),
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(child: _buildStatCard('Total Logins', total.toString(), Icons.people_alt_rounded, const Color(0xFF3B82F6))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Active', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF22C55E))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Inactive', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFEF4444))),
+                ],
               ),
-              if (isMobile) const SizedBox(height: 32) else const SizedBox(width: 48),
-              isMobile 
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildStatCard('Total Logins', total.toString(), Icons.people_alt_rounded, const Color(0xFF3B82F6)),
-                      const SizedBox(height: 16),
-                      _buildStatCard('Active', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF22C55E)),
-                      const SizedBox(height: 16),
-                      _buildStatCard('Inactive', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFEF4444)),
-                    ],
-                  )
-                : Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildStatCard('Total Logins', total.toString(), Icons.people_alt_rounded, const Color(0xFF3B82F6))),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildStatCard('Active', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF22C55E))),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildStatCard('Inactive', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFEF4444))),
-                      ],
-                    ),
-                  ),
-            ],
-          ),
         ],
       ),
     );

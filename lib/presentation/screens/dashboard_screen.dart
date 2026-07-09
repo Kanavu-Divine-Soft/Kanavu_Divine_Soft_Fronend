@@ -9,6 +9,7 @@ import 'package:temple_onboarding/presentation/screens/temple_member_details_scr
 import 'package:temple_onboarding/presentation/screens/admin_list_screen.dart';
 import 'package:temple_onboarding/presentation/screens/add_admin_screen.dart';
 import 'package:temple_onboarding/core/api_constants.dart';
+import 'package:temple_onboarding/presentation/widgets/stat_card_animated_background.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -120,15 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   letterSpacing: 1.1,
                                                 ),
                                               ),
-                                              const SizedBox(height: 6),
-                                              const Text(
-                                                'Enterprise Multi-Temple Onboarding & Member Directory Management Portal',
-                                                style: TextStyle(
-                                                  color: Color(0xFF6B7280),
-                                                  fontSize: 14,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
+
                                             ],
                                           ),
                                         ),
@@ -312,127 +305,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           const Text('Temple Status Overview', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
-          Flex(
-            direction: isMobile ? Axis.vertical : Axis.horizontal,
-            crossAxisAlignment: isMobile ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-            children: [
-              HoverScaleWidget(
-                child: SizedBox(
-                  height: 200,
-                  width: isMobile ? double.infinity : 250,
-                  child: BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: total.toDouble() > 0 ? (total.toDouble() * 1.2) : 1,
-                        barTouchData: BarTouchData(
-                          enabled: true,
-                          touchTooltipData: BarTouchTooltipData(
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              return BarTooltipItem(
-                                rod.toY.round().toString(),
-                                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                              );
-                            },
-                          ),
-                        ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              const style = TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14);
-                              Widget text;
-                              switch (value.toInt()) {
-                                case 0:
-                                  text = const Text('Active', style: style);
-                                  break;
-                                case 1:
-                                  text = const Text('Inactive', style: style);
-                                  break;
-                                default:
-                                  text = const Text('');
-                                  break;
-                              }
-                              return SideTitleWidget(meta: meta, child: text);
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            getTitlesWidget: (value, meta) {
-                              if (value == value.toInt()) {
-                                return Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12));
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      barGroups: [
-                        BarChartGroupData(
-                          x: 0,
-                          barRods: [
-                            BarChartRodData(
-                              toY: activeCount.toDouble(),
-                              gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)], begin: Alignment.bottomCenter, end: Alignment.topCenter),
-                              width: 40,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                            ),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 1,
-                          barRods: [
-                            BarChartRodData(
-                              toY: inactiveCount.toDouble(),
-                              gradient: const LinearGradient(colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], begin: Alignment.bottomCenter, end: Alignment.topCenter),
-                              width: 40,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+          isMobile 
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All'),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active'),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive'),
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(child: _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive')),
+                ],
               ),
-              if (isMobile) const SizedBox(height: 32) else const SizedBox(width: 64),
-              isMobile 
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All'),
-                      const SizedBox(height: 16),
-                      _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active'),
-                      const SizedBox(height: 16),
-                      _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive'),
-                    ],
-                  )
-                : Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All')),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active')),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive')),
-                      ],
-                    ),
-                  ),
-            ],
-          ),
         ],
       ),
     );
@@ -442,19 +334,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return HoverScaleWidget(
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [colorLight, colorDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? Colors.black87 : Colors.transparent, 
-              width: 3
-            ),
+        child: AnimatedScale(
+          scale: isSelected ? 1.05 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorLight, colorDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.transparent, 
+                width: 3
+              ),
             boxShadow: [
               BoxShadow(
                 color: colorDark.withOpacity(isSelected ? 0.6 : 0.3),
@@ -464,27 +359,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16))),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
+            const Positioned.fill(child: StatCardAnimatedBackground(color: Colors.white)),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16))),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 24),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: Colors.white, size: 24),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
           ],
         ),
+      ),
       ),
       ),
     );

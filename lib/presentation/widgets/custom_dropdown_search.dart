@@ -26,6 +26,8 @@ class CustomDropdownSearch extends StatefulWidget {
   final String? errorText;
   final List<TextInputFormatter>? inputFormatters;
   final bool isSearchable;
+  final Map<String, String>? itemFonts;
+  final String? searchFontFamily;
 
   const CustomDropdownSearch({
     super.key,
@@ -50,6 +52,8 @@ class CustomDropdownSearch extends StatefulWidget {
     this.errorText,
     this.inputFormatters,
     this.isSearchable = true,
+    this.itemFonts,
+    this.searchFontFamily,
   });
 
   static bool get isOpen =>
@@ -521,12 +525,12 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
                                                           child: Text(
                                                             entry.value,
                                                             style: TextStyle(
-                                                              fontFamily: 'Inter',
+                                                              fontFamily: widget.itemFonts?[entry.value] ?? 'Inter',
                                                               color: isSelected
                                                                   ? const Color(0xFFE40000)
                                                                   : Colors
                                                                       .black87,
-                                                              fontSize: 14,
+                                                              fontSize: widget.itemFonts?[entry.value] == 'Sun Tommy' ? 16 : 14,
                                                               fontWeight: isSelected
                                                                   ? FontWeight
                                                                       .w600
@@ -712,11 +716,12 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
                                     vertical: 10,
                                   ),
                                 ),
-                                style: TextStyle(fontFamily: 'Inter', 
+                                style: TextStyle(
+                                  fontFamily: widget.searchFontFamily ?? widget.itemFonts?[_textEditingController.text] ?? 'Inter', 
                                   color: widget.isEnabled
                                       ? Colors.black87
                                       : Colors.grey.shade500,
-                                  fontSize: 13,
+                                  fontSize: (widget.searchFontFamily == 'Sun Tommy' || widget.itemFonts?[_textEditingController.text] == 'Sun Tommy') ? 15 : 13,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 onChanged: (val) {
