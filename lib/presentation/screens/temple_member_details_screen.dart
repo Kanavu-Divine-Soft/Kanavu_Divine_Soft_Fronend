@@ -949,7 +949,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
   String _formatIndianCurrency(double amount) {
     String str = amount.toStringAsFixed(0);
-    if (str.length <= 3) return 'Ã¢â€šÂ¹$str';
+    if (str.length <= 3) return '₹$str';
     String result = str.substring(str.length - 3);
     str = str.substring(0, str.length - 3);
     while (str.length > 2) {
@@ -959,7 +959,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     if (str.isNotEmpty) {
       result = '$str,$result';
     }
-    return 'Ã¢â€šÂ¹$result';
+    return '₹$result';
   }
 
   Widget _buildMemberStatusOverview(List<dynamic> members) {
@@ -1251,7 +1251,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Ã¢â€šÂ¹${evt['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                                  Text('₹${evt['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
                                   const SizedBox(width: 12),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
@@ -2681,12 +2681,12 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         : 'Annual Payment';
                                     final String year = p['year']?.toString() ?? '';
                                     final String amount = p['amount'] != null
-                                        ? 'Ã¢â€šÂ¹${double.tryParse(p['amount'].toString())?.toStringAsFixed(2) ?? p['amount']}'
+                                        ? '₹${double.tryParse(p['amount'].toString())?.toStringAsFixed(2) ?? p['amount']}'
                                         : '';
                                     final String dateRange = [
                                       p['from_date']?.toString() ?? '',
                                       p['to_date']?.toString() ?? '',
-                                    ].where((s) => s.isNotEmpty).join(' Ã¢â‚¬â€œ ');
+                                    ].where((s) => s.isNotEmpty).join(' – ');
 
                                     return Container(
                                       margin: const EdgeInsets.only(bottom: 10),
@@ -2731,7 +2731,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                                 ),
                                                 if (year.isNotEmpty || amount.isNotEmpty)
                                                   Text(
-                                                    [if (year.isNotEmpty) year, if (amount.isNotEmpty) amount].join('  Ã¢â‚¬Â¢  '),
+                                                    [if (year.isNotEmpty) year, if (amount.isNotEmpty) amount].join('  •  '),
                                                     style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                                                   ),
                                                 if (dateRange.isNotEmpty)
@@ -2770,7 +2770,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                                 ),
                                               ),
                                               child: Text(
-                                                isPaid ? 'Ã¢Å“â€œ Paid' : 'Unpaid',
+                                                isPaid ? '✓ Paid' : 'Unpaid',
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
@@ -4765,7 +4765,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               DataCell(Text(member['Code'].toString(), style: const TextStyle(fontWeight: FontWeight.bold))),
               DataCell(_buildTamilText(member['Name'], isTamil)),
               DataCell(Text(member['Mobile_Number'] ?? '-')),
-              DataCell(Text('Ã¢â€šÂ¹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
+              DataCell(Text('₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
               DataCell(_buildTamilText(member['Father_Name'], isTamil)),
               DataCell(Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -4924,7 +4924,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 _buildTextButton('Next', _currentPage < _totalPages ? () => setState(() => _currentPage++) : null),
                 
                 // Last Button
-                _buildTextButton('Ã‚Â»', _currentPage < _totalPages ? () => setState(() => _currentPage = _totalPages) : null),
+                _buildTextButton('»', _currentPage < _totalPages ? () => setState(() => _currentPage = _totalPages) : null),
               ],
             ),
           );
@@ -5874,83 +5874,83 @@ class _MultiYearDropdownFieldState extends State<_MultiYearDropdownField> {
 String _translate(String text, String? fontFamily) {
   if (fontFamily != 'Sun Tommy') return text;
   final Map<String, String> translations = {
-    'Personal Identity': 'Ã Â®Â¤Ã Â®Â©Ã Â®Â¿Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸ Ã Â®â€¦Ã Â®Å¸Ã Â¯Ë†Ã Â®Â¯Ã Â®Â¾Ã Â®Â³Ã Â®Â®Ã Â¯Â',
-    'Member Code': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯Â',
-    'Full Name': 'Ã Â®Â®Ã Â¯ÂÃ Â®Â´Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
-    'Full Name *': 'Ã Â®Â®Ã Â¯ÂÃ Â®Â´Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â *',
-    "Father's Name": 'Ã Â®Â¤Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë† Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
-    'Gender': 'Ã Â®ÂªÃ Â®Â¾Ã Â®Â²Ã Â®Â¿Ã Â®Â©Ã Â®Â®Ã Â¯Â',
-    'Male': 'Ã Â®â€ Ã Â®Â£Ã Â¯Â',
-    'Female': 'Ã Â®ÂªÃ Â¯â€ Ã Â®Â£Ã Â¯Â',
-    'Other': 'Ã Â®Â®Ã Â®Â±Ã Â¯ÂÃ Â®Â±Ã Â®ÂµÃ Â¯Ë†',
-    'VIP Status': 'Ã Â®ÂµÃ Â®Â¿Ã Â®ÂÃ Â®ÂªÃ Â®Â¿ Ã Â®â€¦Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¸Ã Â¯ÂÃ Â®Â¤Ã Â¯Â',
-    'Yes': 'Ã Â®â€ Ã Â®Â®Ã Â¯Â',
-    'No': 'Ã Â®â€¡Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
-    'Contact Information': 'Ã Â®Â¤Ã Â¯Å Ã Â®Å¸Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â®â€¢Ã Â®ÂµÃ Â®Â²Ã Â¯Â',
-    'Mobile Number *': 'Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â *',
-    'Mobile Number': 'Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
-    'Email *': 'Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â *',
-    'Email': 'Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â',
-    'Cancel': 'Ã Â®Â°Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Å¡Ã Â¯â€ Ã Â®Â¯Ã Â¯Â',
-    'Save Member': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â®Ã Â®Â¿',
-    'Update Member': 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿',
-    'Address Details': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
-    'Address Line 1 *': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 1 *',
-    'Address Line 1': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 1',
-    'Address Line 2 *': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 2 *',
-    'Address Line 2': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 2',
-    'Address Line 3': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 3',
-    'Address Line 4': 'Ã Â®Â®Ã Â¯ÂÃ Â®â€¢Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ Ã Â®ÂµÃ Â®Â°Ã Â®Â¿ 4',
-    'City': 'Ã Â®Â¨Ã Â®â€¢Ã Â®Â°Ã Â®Â®Ã Â¯Â',
-    'District': 'Ã Â®Â®Ã Â®Â¾Ã Â®ÂµÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â®Ã Â¯Â',
-    'State': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â®Ã Â¯Â',
-    'Country': 'Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â',
-    'PinCode': 'Ã Â®â€¦Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯Â',
-    'Events': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
-    'Add Event': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â',
-    'Event Name': 'Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â®Â¿Ã Â®Â©Ã Â¯Â Ã Â®ÂªÃ Â¯â€ Ã Â®Â¯Ã Â®Â°Ã Â¯Â',
-    'Amount': 'Ã Â®Â¤Ã Â¯Å Ã Â®â€¢Ã Â¯Ë†',
-    'Amount *': 'Ã Â®Â¤Ã Â¯Å Ã Â®â€¢Ã Â¯Ë† *',
-    'India': 'Ã Â®â€¡Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾',
-    'Tamil Nadu': 'Ã Â®Â¤Ã Â®Â®Ã Â®Â¿Ã Â®Â´Ã Â¯ÂÃ Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â',
-    'Kerala': 'Ã Â®â€¢Ã Â¯â€¡Ã Â®Â°Ã Â®Â³Ã Â®Â¾',
-    'Karnataka': 'Ã Â®â€¢Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â®â€¢Ã Â®Â¾',
-    'Andhra Pradesh': 'Ã Â®â€ Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â®Â¿Ã Â®Â°Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¡Ã Â®Â®Ã Â¯Â',
-    'Telangana': 'Ã Â®Â¤Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â¾Ã Â®Â©Ã Â®Â¾',
-    'Puducherry': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Å¡Ã Â¯ÂÃ Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â®Â¿',
-    'Payment Status': 'Ã Â®â€¢Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â£ Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†',
-    'Select Status': 'Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†Ã Â®Â¯Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯â€ Ã Â®Å¸Ã Â¯Â',
-    'Please fill the current event details before adding a new one.': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â¯ÂÃ Â®Â©Ã Â¯Â Ã Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯â€¹Ã Â®Â¤Ã Â¯Ë†Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Â Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Ë† Ã Â®Â¨Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â.',
-    'Please fill all the current event details before adding a new one.': 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â¯ÂÃ Â®Â©Ã Â¯Â Ã Â®Â¤Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯â€¹Ã Â®Â¤Ã Â¯Ë†Ã Â®Â¯ Ã Â®â€¦Ã Â®Â©Ã Â¯Ë†Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Â Ã Â®Â¨Ã Â®Â¿Ã Â®â€¢Ã Â®Â´Ã Â¯ÂÃ Â®ÂµÃ Â¯Â Ã Â®ÂµÃ Â®Â¿Ã Â®ÂµÃ Â®Â°Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Ë†Ã Â®Â¯Ã Â¯ÂÃ Â®Â®Ã Â¯Â Ã Â®Â¨Ã Â®Â¿Ã Â®Â°Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â.',
-    'Validation Error': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®ÂªÃ Â®Â¾Ã Â®Â°Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â®Â¿Ã Â®Â´Ã Â¯Ë†',
-    'Paid': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¤Ã Â¯Â',
-    'Unpaid': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â²Ã Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â®ÂµÃ Â®Â¿Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
-    'Required': 'Ã Â®â€¢Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¾Ã Â®Â¯Ã Â®Â®Ã Â¯Â',
-    'Please enter a valid email': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾Ã Â®Â© Ã Â®Â®Ã Â®Â¿Ã Â®Â©Ã Â¯ÂÃ Â®Â©Ã Â®Å¾Ã Â¯ÂÃ Â®Å¡Ã Â®Â²Ã Â¯Ë† Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
-    'Search state...': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¸Ã Â¯Â...',
-    'Search country or code...': 'Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯Â Ã Â®â€¦Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â®Â¤Ã Â¯Â Ã Â®â€¢Ã Â¯ÂÃ Â®Â±Ã Â®Â¿Ã Â®Â¯Ã Â¯â‚¬Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Å¸Ã Â¯Â...',
-    'Select State': 'Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®Â¤Ã Â¯ÂÃ Â®Â¤Ã Â¯Ë†Ã Â®Â¤Ã Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â°Ã Â¯ÂÃ Â®Â¨Ã Â¯ÂÃ Â®Â¤Ã Â¯â€ Ã Â®Å¸Ã Â¯Â',
-    'Remove': 'Ã Â®Â¨Ã Â¯â‚¬Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢Ã Â¯Â',
-    'From Date': 'Ã Â®Â¤Ã Â¯Å Ã Â®Å¸Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢ Ã Â®Â¤Ã Â¯â€¡Ã Â®Â¤Ã Â®Â¿',
-    'To Date': 'Ã Â®Â®Ã Â¯ÂÃ Â®Å¸Ã Â®Â¿Ã Â®ÂµÃ Â¯Â Ã Â®Â¤Ã Â¯â€¡Ã Â®Â¤Ã Â®Â¿',
-    'Year': 'Ã Â®â€ Ã Â®Â£Ã Â¯ÂÃ Â®Å¸Ã Â¯Â',
-    'Status': 'Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â¯Ë†',
-    'Action': 'Ã Â®Å¡Ã Â¯â€ Ã Â®Â¯Ã Â®Â²Ã Â¯Â',
-    'Invalid Mobile Number': 'Ã Â®Â¤Ã Â®ÂµÃ Â®Â±Ã Â®Â¾Ã Â®Â© Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
-    'Enter a valid': 'Ã Â®Å¡Ã Â®Â°Ã Â®Â¿Ã Â®Â¯Ã Â®Â¾Ã Â®Â©Ã Â®Â¤Ã Â¯Ë† Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
-    'digit mobile number': 'Ã Â®â€¡Ã Â®Â²Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢ Ã Â®â€¢Ã Â¯Ë†Ã Â®ÂªÃ Â¯â€¡Ã Â®Å¡Ã Â®Â¿ Ã Â®Å½Ã Â®Â£Ã Â¯Â',
-    'Enter between': 'Ã Â®â€¡Ã Â®Å¸Ã Â¯Ë†Ã Â®Â¯Ã Â¯â€¡ Ã Â®â€°Ã Â®Â³Ã Â¯ÂÃ Â®Â³Ã Â®Â¿Ã Â®Å¸Ã Â®ÂµÃ Â¯ÂÃ Â®Â®Ã Â¯Â',
-    'and': 'Ã Â®Â®Ã Â®Â±Ã Â¯ÂÃ Â®Â±Ã Â¯ÂÃ Â®Â®Ã Â¯Â',
-    'digits': 'Ã Â®â€¡Ã Â®Â²Ã Â®â€¢Ã Â¯ÂÃ Â®â€¢Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â',
-    'No states found for this country': 'Ã Â®â€¡Ã Â®Â¨Ã Â¯ÂÃ Â®Â¤ Ã Â®Â¨Ã Â®Â¾Ã Â®Å¸Ã Â¯ÂÃ Â®Å¸Ã Â®Â¿Ã Â®Â±Ã Â¯ÂÃ Â®â€¢Ã Â¯Â Ã Â®Â®Ã Â®Â¾Ã Â®Â¨Ã Â®Â¿Ã Â®Â²Ã Â®â„¢Ã Â¯ÂÃ Â®â€¢Ã Â®Â³Ã Â¯Â Ã Â®â€¢Ã Â®Â¾Ã Â®Â£Ã Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Å¸Ã Â®ÂµÃ Â®Â¿Ã Â®Â²Ã Â¯ÂÃ Â®Â²Ã Â¯Ë†',
+    'Personal Identity': 'தனிப்பட்ட அடையாளம்',
+    'Member Code': 'உறுப்பினர் குறியீடு',
+    'Full Name': 'முழு பெயர்',
+    'Full Name *': 'முழு பெயர் *',
+    "Father's Name": 'தந்தை பெயர்',
+    'Gender': 'பாலினம்',
+    'Male': 'ஆண்',
+    'Female': 'பெண்',
+    'Other': 'மற்றவை',
+    'VIP Status': 'விஐபி அந்தஸ்து',
+    'Yes': 'ஆம்',
+    'No': 'இல்லை',
+    'Contact Information': 'தொடர்புத் தகவல்',
+    'Mobile Number *': 'கைபேசி எண் *',
+    'Mobile Number': 'கைபேசி எண்',
+    'Email *': 'மின்னஞ்சல் *',
+    'Email': 'மின்னஞ்சல்',
+    'Cancel': 'ரத்து செய்',
+    'Save Member': 'உறுப்பினரைச் சேமி',
+    'Update Member': 'உறுப்பினரைப் புதுப்பி',
+    'Address Details': 'முகவரி விவரங்கள்',
+    'Address Line 1 *': 'முகவரி வரி 1 *',
+    'Address Line 1': 'முகவரி வரி 1',
+    'Address Line 2 *': 'முகவரி வரி 2 *',
+    'Address Line 2': 'முகவரி வரி 2',
+    'Address Line 3': 'முகவரி வரி 3',
+    'Address Line 4': 'முகவரி வரி 4',
+    'City': 'நகரம்',
+    'District': 'மாவட்டம்',
+    'State': 'மாநிலம்',
+    'Country': 'நாடு',
+    'PinCode': 'அஞ்சல் குறியீடு',
+    'Events': 'நிகழ்வுகள்',
+    'Add Event': 'நிகழ்வைச் சேர்',
+    'Event Name': 'நிகழ்வின் பெயர்',
+    'Amount': 'தொகை',
+    'Amount *': 'தொகை *',
+    'India': 'இந்தியா',
+    'Tamil Nadu': 'தமிழ்நாடு',
+    'Kerala': 'கேரளா',
+    'Karnataka': 'கர்நாடகா',
+    'Andhra Pradesh': 'ஆந்திரப் பிரதேசம்',
+    'Telangana': 'தெலுங்கானா',
+    'Puducherry': 'புதுச்சேரி',
+    'Payment Status': 'கட்டண நிலை',
+    'Select Status': 'நிலையைத் தேர்ந்தெடு',
+    'Please fill the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய நிகழ்வு விவரங்களை நிரப்பவும்.',
+    'Please fill all the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய அனைத்து நிகழ்வு விவரங்களையும் நிரப்பவும்.',
+    'Validation Error': 'சரிபார்ப்பு பிழை',
+    'Paid': 'செலுத்தப்பட்டது',
+    'Unpaid': 'செலுத்தப்படவில்லை',
+    'Required': 'கட்டாயம்',
+    'Please enter a valid email': 'சரியான மின்னஞ்சலை உள்ளிடவும்',
+    'Search state...': 'மாநிலத்தைத் தேடு...',
+    'Search country or code...': 'நாடு அல்லது குறியீட்டைத் தேடு...',
+    'Select State': 'மாநிலத்தைத் தேர்ந்தெடு',
+    'Remove': 'நீக்கு',
+    'From Date': 'தொடக்க தேதி',
+    'To Date': 'முடிவு தேதி',
+    'Year': 'ஆண்டு',
+    'Status': 'நிலை',
+    'Action': 'செயல்',
+    'Invalid Mobile Number': 'தவறான கைபேசி எண்',
+    'Enter a valid': 'சரியானதை உள்ளிடவும்',
+    'digit mobile number': 'இலக்க கைபேசி எண்',
+    'Enter between': 'இடையே உள்ளிடவும்',
+    'and': 'மற்றும்',
+    'digits': 'இலக்கங்கள்',
+    'No states found for this country': 'இந்த நாட்டிற்கு மாநிலங்கள் காணப்படவில்லை',
   };
   if (text.startsWith('Add New') && text.endsWith('Member')) {
     final middle = text.substring('Add New'.length, text.length - 'Member'.length).trim();
-    return middle.isEmpty ? 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â' : 'Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â®Â¿Ã Â®Â¯ ${middle} Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®Å¡Ã Â¯Â Ã Â®Å¡Ã Â¯â€¡Ã Â®Â°Ã Â¯Â';
+    return middle.isEmpty ? 'புதிய உறுப்பினரைச் சேர்' : 'புதிய ${middle} உறுப்பினரைச் சேர்';
   }
   if (text.startsWith('Edit') && text.endsWith('Member')) {
     final middle = text.substring('Edit'.length, text.length - 'Member'.length).trim();
-    return middle.isEmpty ? 'Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿' : '${middle} Ã Â®â€°Ã Â®Â±Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿Ã Â®Â©Ã Â®Â°Ã Â¯Ë†Ã Â®ÂªÃ Â¯Â Ã Â®ÂªÃ Â¯ÂÃ Â®Â¤Ã Â¯ÂÃ Â®ÂªÃ Â¯ÂÃ Â®ÂªÃ Â®Â¿';
+    return middle.isEmpty ? 'உறுப்பினரைப் புதுப்பி' : '${middle} உறுப்பினரைப் புதுப்பி';
   }
   return translations[text] ?? text;
 }
@@ -6748,5 +6748,4 @@ class _CustomDistrictSelectFieldState extends State<CustomDistrictSelectField> {
     );
   }
 }
-
 
