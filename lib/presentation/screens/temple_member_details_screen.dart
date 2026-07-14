@@ -799,8 +799,29 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   const SizedBox(width: 12),
 
                   // Profile Popup Menu with Logout
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 56),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      clipBehavior: Clip.antiAlias,
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: PopupMenuButton<String>(
+                          tooltip: '',
+                          offset: const Offset(0, 56),
                     color: Colors.white,
                     surfaceTintColor: Colors.white,
                     elevation: 4,
@@ -853,20 +874,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                         ),
                       ),
                     ],
-                    child: Container(
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
-                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -910,6 +919,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                         ],
                       ),
                     ),
+                  ),
+                  ),
+                  ),
                   ),
                   const SizedBox(width: 16),
                 ],
@@ -1852,6 +1864,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   }
 
   void _showAddMemberDialog() {
+    final List<String> _dialogAvailableCities = [];
     final _personalIdentityKey = GlobalKey();
     final _contactInfoKey = GlobalKey();
     final _addressDetailsKey = GlobalKey();
@@ -2072,7 +2085,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         _paymentControllers.removeAt(index);
                                       });
                                     },
-                                    personalIdentityKey: _personalIdentityKey,
+                                    availableCities: _dialogAvailableCities, personalIdentityKey: _personalIdentityKey,
                                     contactInfoKey: _contactInfoKey,
                                     addressDetailsKey: _addressDetailsKey,
                                     eventsKey: _eventsKey,
@@ -2893,6 +2906,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
 
   void _showEditMemberDialog(Map<String, dynamic> member) {
+    final List<String> _dialogAvailableCities = [];
     final _personalIdentityKey = GlobalKey();
     final _contactInfoKey = GlobalKey();
     final _addressDetailsKey = GlobalKey();
@@ -3251,7 +3265,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                         _paymentControllers.removeAt(index);
                                       });
                                     },
-                                    personalIdentityKey: _personalIdentityKey,
+                                    availableCities: _dialogAvailableCities, personalIdentityKey: _personalIdentityKey,
                                     contactInfoKey: _contactInfoKey,
                                     addressDetailsKey: _addressDetailsKey,
                                     eventsKey: _eventsKey,
@@ -3263,7 +3277,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             ),
                           ),
                         ),
-                        _buildDialogActions(context, _isSaving, fontFamily: _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null, () async {
+                        _buildDialogActions(context, _isSaving, member: member, fontFamily: _dialogLanguage == 'Sun Tommy' ? 'Sun Tommy' : null, () async {
                           if (!_dialogFormKey.currentState!.validate()) {
                             BuildContext? targetContext;
                             
@@ -3548,6 +3562,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     String? sex, Function(String?) onSexChanged,
     String? vip, Function(String?) onVipChanged,
     String? fontFamily, {
+    List<String>? availableCities,
     bool isEdit = false,
     bool isEditable = true,
     String dialogCountryCode = 'IN',
@@ -3699,16 +3714,49 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
             maxLength: 254,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
           ),
-          _buildDialogTextField(
-            controller: controllers['city']!,
-            label: 'City *',
-            icon: Icons.location_city,
-            fontFamily: fontFamily,
-            enabled: isEditable,
-            validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
-            maxLength: 254,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
-          ),
+          (availableCities != null && availableCities.isNotEmpty)
+            ? FormField<String>(
+                initialValue: controllers['city']!.text,
+                validator: (v) => (v == null || v.trim().isEmpty || v == 'Select City') ? _translate('Required', fontFamily) : null,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                builder: (FormFieldState<String> cityField) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomCitySelectField(
+                        initialCity: controllers['city']!.text,
+                        availableCities: availableCities,
+                        enabled: isEditable,
+                        fontFamily: fontFamily,
+                        onCitySelect: (city) {
+                          controllers['city']!.text = city;
+                          cityField.didChange(city);
+                          setDialogState(() {});
+                        },
+                      ),
+                      if (cityField.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, top: 6),
+                          child: Text(
+                            cityField.errorText!,
+                            style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              )
+            : _buildDialogTextField(
+                controller: controllers['city']!,
+                label: 'City *',
+                icon: Icons.location_city,
+                fontFamily: fontFamily,
+                enabled: isEditable,
+                validator: (v) => v!.trim().isEmpty ? _translate('Required', fontFamily) : null,
+                maxLength: 254,
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+              ),
           FormField<String>(
             initialValue: controllers['district']!.text,
             validator: (v) => (v == null || v.trim().isEmpty || v == 'Select District') ? _translate('Required', fontFamily) : null,
@@ -3836,6 +3884,19 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     if (data is List && data.isNotEmpty && data[0]['Status'] == 'Success') {
                       final postOffice = data[0]['PostOffice'][0];
                       setDialogState(() {
+                        if (availableCities != null) {
+                          availableCities.clear();
+                          final postOffices = data[0]['PostOffice'] as List;
+                          final Set<String> cityNames = {};
+                          for (var po in postOffices) {
+                            if (po['Name'] != null) cityNames.add(po['Name'].toString());
+                            if (po['Block'] != null && po['Block'].toString().toUpperCase() != 'NA') {
+                              cityNames.add(po['Block'].toString());
+                            }
+                          }
+                          availableCities.addAll(cityNames.toList());
+                        }
+
                         if (controllers['country'] != null) controllers['country']!.text = postOffice['Country'] ?? 'India';
                         if (controllers['state'] != null) controllers['state']!.text = postOffice['State'] ?? 'Tamil Nadu';
                         if (controllers['district'] != null) controllers['district']!.text = postOffice['District'] ?? '';
@@ -4221,38 +4282,32 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     );
   }
 
-  Widget _buildDialogActions(BuildContext context, bool isSaving, VoidCallback onSave, {bool isEditable = true, String? fontFamily}) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8FAFC),
-        border: Border(
-          top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Wrap(
-        alignment: WrapAlignment.end,
-        spacing: 16,
-        runSpacing: 12,
-        children: [
-          TextButton(
-            onPressed: isSaving ? null : () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              _translate('Cancel', fontFamily), 
-              style: TextStyle(
-                fontFamily: fontFamily,
-                color: const Color(0xFF64748B), 
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
+  Widget _buildDialogActions(BuildContext context, bool isSaving, VoidCallback onSave, {bool isEditable = true, String? fontFamily, Map<String, dynamic>? member}) {
+    final actionWrap = Wrap(
+      alignment: WrapAlignment.end,
+      spacing: 16,
+      runSpacing: 12,
+      children: [
+        TextButton(
+          onPressed: isSaving ? null : () => Navigator.pop(context),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: Text(
+            _translate('Cancel', fontFamily), 
+            style: TextStyle(
+              fontFamily: fontFamily,
+              color: const Color(0xFF64748B), 
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
             ),
           ),
+        ),
+        if (isEditable)
           InkWell(
-            onTap: (isSaving || !isEditable) ? null : onSave,
+            onTap: isSaving ? null : onSave,
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               decoration: BoxDecoration(
                 gradient: (isSaving || !isEditable) 
@@ -4276,6 +4331,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               child: Center(
+                widthFactor: 1,
                 child: isSaving
                   ? const SizedBox(
                       width: 20,
@@ -4295,8 +4351,46 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
               ),
             ),
           ),
-        ],
+      ],
+    );
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        border: Border(
+          top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: member != null
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showDownloadReceiptDialog(member);
+                  },
+                  icon: const Icon(Icons.receipt_long_outlined, color: Colors.blue, size: 20),
+                  label: Text(
+                    fontFamily == 'Sun Tommy' ? 'ரசீது பதிவிறக்கம்' : 'Download Receipt',
+                    style: TextStyle(color: Colors.blue, fontFamily: fontFamily == 'Sun Tommy' ? null : fontFamily, fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blue),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: actionWrap,
+                  ),
+                ),
+              ],
+            )
+          : actionWrap,
     );
   }
 
@@ -6749,3 +6843,285 @@ class _CustomDistrictSelectFieldState extends State<CustomDistrictSelectField> {
   }
 }
 
+
+class CustomCitySelectField extends StatefulWidget {
+  final String initialCity;
+  final List<String> availableCities;
+  final Function(String) onCitySelect;
+  final bool enabled;
+  final String? fontFamily;
+
+  const CustomCitySelectField({
+    Key? key,
+    required this.initialCity,
+    required this.availableCities,
+    required this.onCitySelect,
+    this.enabled = true,
+    this.fontFamily,
+  }) : super(key: key);
+
+  @override
+  State<CustomCitySelectField> createState() => _CustomCitySelectFieldState();
+}
+
+class _CustomCitySelectFieldState extends State<CustomCitySelectField> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  late String _selectedCity;
+  bool _isDropdownOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _filteredCities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCity = widget.initialCity.isEmpty ? 'Select City' : widget.initialCity;
+    _filteredCities = widget.availableCities;
+  }
+
+  @override
+  void didUpdateWidget(CustomCitySelectField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCity != widget.initialCity && widget.initialCity.isNotEmpty) {
+      setState(() {
+        _selectedCity = widget.initialCity;
+      });
+    }
+    if (oldWidget.availableCities != widget.availableCities) {
+      setState(() {
+        _filteredCities = widget.availableCities;
+        if (!widget.availableCities.contains(_selectedCity) && widget.availableCities.isNotEmpty) {
+          _selectedCity = widget.availableCities.first;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onCitySelect(_selectedCity);
+          });
+        }
+      });
+    }
+  }
+
+  void _filterCities(String query) {
+    setState(() {
+      _filteredCities = widget.availableCities
+          .where((city) => city.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+    _overlayEntry?.markNeedsBuild();
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+    var offset = renderBox.localToGlobal(Offset.zero);
+    var screenHeight = MediaQuery.of(context).size.height;
+    var spaceBelow = screenHeight - offset.dy - size.height - 20;
+    var spaceAbove = offset.dy - 20;
+    
+    bool openUpwards = spaceBelow < 250 && spaceAbove > spaceBelow;
+    double maxHeight = openUpwards ? (spaceAbove > 300 ? 300 : spaceAbove) : (spaceBelow > 300 ? 300 : spaceBelow);
+    if (maxHeight < 150) maxHeight = 150;
+
+    return OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _closeDropdown,
+              child: Container(),
+            ),
+          ),
+          Positioned(
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0.0, openUpwards ? -(maxHeight + 5.0) : size.height + 5.0),
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+                clipBehavior: Clip.antiAlias,
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: maxHeight),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: StatefulBuilder(
+                    builder: (context, setDropdownState) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              controller: _searchController,
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                hintText: 'Search city...',
+                                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                                prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onChanged: (val) {
+                                setDropdownState(() {});
+                                _filterCities(val);
+                              },
+                            ),
+                          ),
+                          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                          Expanded(
+                            child: _filteredCities.isEmpty
+                                ? const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(child: Text('No cities found', style: TextStyle(color: Color(0xFF64748B)))),
+                                  )
+                                : ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: _filteredCities.length,
+                                    itemBuilder: (context, index) {
+                                      final city = _filteredCities[index];
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedCity = city;
+                                          });
+                                          widget.onCitySelect(city);
+                                          _closeDropdown();
+                                        },
+                                        hoverColor: const Color(0xFFF1F5F9),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          child: Text(
+                                            city,
+                                            style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleDropdown() {
+    if (!widget.enabled) return;
+    if (_isDropdownOpen) {
+      _closeDropdown();
+    } else {
+      _searchController.clear();
+      _filteredCities = widget.availableCities;
+      _overlayEntry = _createOverlayEntry();
+      Overlay.of(context).insert(_overlayEntry!);
+      setState(() {
+        _isDropdownOpen = true;
+      });
+    }
+  }
+
+  void _closeDropdown() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      _isDropdownOpen = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    if (_isDropdownOpen) {
+      _overlayEntry?.remove();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggleDropdown,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            label: Text.rich(
+              TextSpan(
+                text: 'City',
+                children: const [
+                  TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            ),
+            labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+            filled: true,
+            fillColor: widget.enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFF1F5F9), width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE40000), width: 2),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_city, color: Color(0xFF94A3B8), size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _selectedCity,
+                        style: TextStyle(
+                          color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                _isDropdownOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                color: const Color(0xFF64748B),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

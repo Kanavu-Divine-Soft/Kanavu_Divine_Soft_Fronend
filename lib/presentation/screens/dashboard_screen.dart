@@ -126,73 +126,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                         ),
 
-                                        // Right Actions
-                                        Container(
-                                          width: MediaQuery.of(context).size.width < 600 ? MediaQuery.of(context).size.width - 48 : null,
-                                          alignment: Alignment.centerRight,
-                                          child: Wrap(
-                                            spacing: 16,
-                                            runSpacing: 16,
-                                            alignment: WrapAlignment.end,
-                                            crossAxisAlignment: WrapCrossAlignment.center,
-                                            children: [
-                                               if (widget.userData['role'] == 'Super Admin')
-                                              ElevatedButton.icon(
-                                                onPressed: () async {
-                                                  final result = await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(builder: (context) => const AddAdminScreen()),
-                                                  );
-                                                  if (result == true) {
-                                                    _fetchTables();
-                                                  }
-                                                },
-                                                icon: const Icon(Icons.add, color: Colors.white),
-                                                label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(0xFFE40000),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                                                  elevation: 2,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                  ),
-                                                ),
-                                              ),
-                                            Container(
-                                              height: 48,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: const Color(0xFFD1D5DB)),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  IconButton(
-                                                    icon: const Icon(Icons.grid_view_rounded),
-                                                    color: _isGridView ? const Color(0xFFE40000) : const Color(0xFF9CA3AF),
-                                                    onPressed: () => setState(() => _isGridView = true),
-                                                    tooltip: 'Grid View',
-                                                  ),
-                                                  Container(width: 1, height: 24, color: const Color(0xFFD1D5DB)),
-                                                  IconButton(
-                                                    icon: const Icon(Icons.table_rows_rounded),
-                                                    color: !_isGridView ? const Color(0xFFE40000) : const Color(0xFF9CA3AF),
-                                                    onPressed: () => setState(() => _isGridView = false),
-                                                    tooltip: 'Table View',
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        ),
                                       ],
                                     ),
                                   ),
                                 const SizedBox(height: 24),
                                 _buildTempleStatusOverview(context, _searchFilteredTables),
                                 const SizedBox(height: 32),
+
 
                                 if (_tables.isEmpty)
                                   const Center(
@@ -394,6 +334,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildRightActions() {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (widget.userData['role'] == 'Super Admin')
+          ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddAdminScreen()),
+              );
+              if (result == true) {
+                _fetchTables();
+              }
+            },
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE40000),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFD1D5DB)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.grid_view_rounded),
+                color: _isGridView ? const Color(0xFFE40000) : const Color(0xFF9CA3AF),
+                onPressed: () => setState(() => _isGridView = true),
+                tooltip: 'Grid View',
+              ),
+              Container(width: 1, height: 24, color: const Color(0xFFD1D5DB)),
+              IconButton(
+                icon: const Icon(Icons.table_rows_rounded),
+                color: !_isGridView ? const Color(0xFFE40000) : const Color(0xFF9CA3AF),
+                onPressed: () => setState(() => _isGridView = false),
+                tooltip: 'Table View',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSeparatedGrids() {
     final activeTables = _filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').toList();
     final inactiveTables = _filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').toList();
@@ -402,7 +401,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (activeTables.isNotEmpty) ...[
-          Text('Active Temples (${activeTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Active Temples (${activeTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+              _buildRightActions(),
+            ],
+          ),
           const SizedBox(height: 16),
           GridView.builder(
             shrinkWrap: true,
@@ -421,7 +426,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         if (inactiveTables.isNotEmpty) ...[
           const SizedBox(height: 32),
-          Text('Inactive Temples (${inactiveTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Inactive Temples (${inactiveTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+              if (activeTables.isEmpty) _buildRightActions(),
+            ],
+          ),
           const SizedBox(height: 16),
           GridView.builder(
             shrinkWrap: true,
@@ -493,7 +504,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 8, top: 8),
-                        child: Text('Active Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').length})', style: const TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14)),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Active Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').length})', style: const TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14)),
+                              _buildRightActions(),
+                            ],
+                          ),
                       ),
                       ..._filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').map((templeData) => _buildTableRowItem(templeData)),
                     ],
@@ -501,7 +518,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (_filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 8, top: 16),
-                        child: Text('Inactive Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').length})', style: const TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14)),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Inactive Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').length})', style: const TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.bold, fontSize: 14)),
+                              if (_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').isEmpty) _buildRightActions(),
+                            ],
+                          ),
                       ),
                       ..._filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').map((templeData) => _buildTableRowItem(templeData)),
                     ],
