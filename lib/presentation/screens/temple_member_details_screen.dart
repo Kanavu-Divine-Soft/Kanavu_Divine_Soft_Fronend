@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:temple_onboarding/presentation/widgets/custom_notification_dialog.dart';
 import 'package:temple_onboarding/presentation/screens/login_screen.dart';
-import 'package:temple_onboarding/presentation/screens/dashboard_screen.dart';
+import 'package:temple_onboarding/presentation/screens/main_layout_screen.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/countries.dart' as intl_country;
 import 'package:country_picker/country_picker.dart';
@@ -629,10 +629,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 tooltip: 'Back to Dashboard',
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => DashboardScreen(userData: _userData!)),
-                  );
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainLayoutScreen(userData: _userData!)),
+                    );
+                  }
                 },
               )
             else
@@ -670,10 +674,14 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             if (!_isUploading) _handleBulkUpload();
                             break;
                           case 'dashboard':
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => DashboardScreen(userData: _userData!)),
-                            );
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => MainLayoutScreen(userData: _userData!)),
+                              );
+                            }
                             break;
                           case 'logout':
                             final bool? confirm = await showDialog<bool>(
@@ -799,27 +807,13 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   const SizedBox(width: 12),
 
                   // Profile Popup Menu with Logout
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        )
-                      ],
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
                     ),
-                    child: Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      clipBehavior: Clip.antiAlias,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFE5E7EB)),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: PopupMenuButton<String>(
+                    child: PopupMenuButton<String>(
                           tooltip: '',
                           offset: const Offset(0, 56),
                     color: Colors.white,
@@ -860,9 +854,76 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                           MaterialPageRoute(builder: (context) => const LoginScreen()),
                           (route) => false,
                         );
+                      } else if (value == 'profile') {
+                        final String contactPerson = _userData?['contact_person']?.toString() ?? _userData?['name']?.toString() ?? 'Administrator';
+                        final String role = _userData?['role']?.toString() ?? 'Administrator';
+                        final String emailRaw = _userData?['email']?.toString() ?? '';
+                        final String email = emailRaw.isNotEmpty ? emailRaw : 'N/A';
+                        final String mobileRaw = _userData?['mobile']?.toString() ?? '';
+                        final String mobile = mobileRaw.isNotEmpty ? mobileRaw : 'N/A';
+                        
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Row(
+                              children: [
+                                Icon(Icons.account_circle, color: Color(0xFFE40000), size: 28),
+                                SizedBox(width: 12),
+                                Text('Profile Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.person_outline, color: Color(0xFF6B7280)),
+                                  title: const Text('Contact Person Name', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                                  subtitle: Text(contactPerson, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.admin_panel_settings_outlined, color: Color(0xFF6B7280)),
+                                  title: const Text('Role', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                                  subtitle: Text(role, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.phone_outlined, color: Color(0xFF6B7280)),
+                                  title: const Text('Contact Number', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                                  subtitle: Text(mobile, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.email_outlined, color: Color(0xFF6B7280)),
+                                  title: const Text('Email ID', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                                  subtitle: Text(email, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          ),
+                        );
                       }
                     },
                     itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'profile',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.blueAccent, size: 20),
+                            SizedBox(width: 12),
+                            Text('Profile', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
                       const PopupMenuItem(
                         value: 'logout',
                         child: Row(
@@ -879,21 +940,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: const Color(0xFFF3F4F6),
-                            child: Text(
-                              firstLetter,
-                              style: const TextStyle(
-                                color: Color(0xFF1F2937),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
@@ -901,26 +949,30 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                 style: const TextStyle(
                                   color: Color(0xFF111827),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: 16,
                                 ),
                               ),
                               Text(
                                 role,
                                 style: const TextStyle(
                                   color: Color(0xFF6B7280),
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(width: 12),
+                          const CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Color(0xFFE40000),
+                            child: Icon(Icons.person, color: Colors.white),
                           ),
                           const SizedBox(width: 8),
                           const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280), size: 20),
                         ],
                       ),
                     ),
-                  ),
-                  ),
                   ),
                   ),
                   const SizedBox(width: 16),
@@ -1075,11 +1127,9 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     return HoverScaleWidget(
       child: GestureDetector(
         onTap: onTap,
-        child: AnimatedScale(
-          scale: isSelected ? 1.05 : 1.0,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          child: Container(
+        child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
             height: 140,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -1092,16 +1142,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 color: Colors.transparent, 
                 width: 3
               ),
-            boxShadow: [
-              BoxShadow(
-                color: colorDark.withOpacity(isSelected ? 0.6 : 0.3),
-                blurRadius: isSelected ? 16 : 12,
-                offset: const Offset(0, 6),
-                spreadRadius: isSelected ? 2 : 0,
-              ),
-            ],
-          ),
+              boxShadow: [
+                BoxShadow(
+                  color: colorDark.withOpacity(isSelected ? 0.6 : 0.3),
+                  blurRadius: isSelected ? 16 : 12,
+                  offset: const Offset(0, 6),
+                  spreadRadius: isSelected ? 2 : 0,
+                ),
+              ],
+            ),
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
               const Positioned.fill(child: StatCardAnimatedBackground(color: Colors.white)),
               Padding(
@@ -1134,9 +1185,28 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                   ],
                 ),
               ),
+              if (isSelected)
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorDark.withOpacity(0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.check_circle, color: colorDark, size: 24),
+                  ),
+                ),
             ],
           ),
-        ),
         ),
       ),
     );
@@ -3106,7 +3176,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
-                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
+                                                _buildLangPill('Tamil', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -3156,7 +3226,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                             child: Row(
                                               children: [
                                                 _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
-                                                _buildLangPill('Sun Tommy', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
+                                                _buildLangPill('Tamil', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -3416,7 +3486,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildLangPill('English', currentLang == 'English', () => onLangChanged('English')),
-            _buildLangPill('Sun Tommy', currentLang == 'Sun Tommy', () => onLangChanged('Sun Tommy')),
+            _buildLangPill('Tamil', currentLang == 'Sun Tommy', () => onLangChanged('Sun Tommy')),
           ],
         ),
       ),
@@ -4633,12 +4703,37 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
 
   Widget _buildDynamicDropdown(String label, String selectedValue, List<Map<String, String>> items, ValueChanged<String?> onChanged) {
     final bool isMobile = MediaQuery.of(context).size.width < 800;
-    final List<String> dropdownItems = items.map((item) => item['val']!).toList();
-    final String currentVal = items.any((i) => i['val'] == selectedValue) ? selectedValue : items.first['val']!;
+
+    String _toDisplay(Map<String, String> item) {
+      if (_nameSearchLang == 'Sun Tommy' && item['lang'] == 'English') {
+        return _translate(item['val']!, 'Sun Tommy');
+      }
+      return item['val']!;
+    }
+
+    String _toValue(String displayVal) {
+      if (_nameSearchLang == 'Sun Tommy') {
+        for (var item in items) {
+           if (item['lang'] == 'English' && _translate(item['val']!, 'Sun Tommy') == displayVal) {
+              return item['val']!;
+           }
+        }
+      }
+      return displayVal;
+    }
+
+    final List<String> dropdownItems = items.map((item) => _toDisplay(item)).toList();
+    
+    Map<String, String> selectedItemMap = items.first;
+    try {
+       selectedItemMap = items.firstWhere((i) => i['val'] == selectedValue);
+    } catch (_) {}
+    
+    final String currentVal = _toDisplay(selectedItemMap);
 
     final Map<String, String> itemFonts = {};
     for (var item in items) {
-      final text = item['val']!;
+      final text = _toDisplay(item);
       final lang = item['lang'];
       bool hasUnicodeTamil = text.runes.any((r) => r >= 0x0B80 && r <= 0x0BFF);
       if ((lang == 'Tamil' || lang == 'Sun Tommy') && !hasUnicodeTamil) {
@@ -4651,12 +4746,18 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
     return SizedBox(
       width: isMobile ? (MediaQuery.of(context).size.width - 52) / 2 : 170,
       child: CustomDropdownSearch(
-        label: label,
+        label: _nameSearchLang == 'Sun Tommy' ? _translate(label, 'Sun Tommy') : label,
         value: currentVal,
         dropdownItems: dropdownItems,
         itemFonts: itemFonts,
         searchFontFamily: _nameSearchLang,
-        onChanged: onChanged,
+        onChanged: (val) {
+          if (val != null) {
+            onChanged(_toValue(val));
+          } else {
+            onChanged(null);
+          }
+        },
         height: 48,
       ),
     );
@@ -6037,6 +6138,20 @@ String _translate(String text, String? fontFamily) {
     'and': 'மற்றும்',
     'digits': 'இலக்கங்கள்',
     'No states found for this country': 'இந்த நாட்டிற்கு மாநிலங்கள் காணப்படவில்லை',
+    'COUNTRY': 'நாடு',
+    'STATE': 'மாநிலம்',
+    'DISTRICT': 'மாவட்டம்',
+    'CITY OR TALUK': 'நகரம் / தாலுகா',
+    'EVENT YEAR': 'நிகழ்வு ஆண்டு',
+    'EVENT NAME': 'நிகழ்வின் பெயர்',
+    'STATUS': 'நிலை',
+    'All Countries': 'அனைத்து நாடுகள்',
+    'All States': 'அனைத்து மாநிலங்கள்',
+    'All Districts': 'அனைத்து மாவட்டங்கள்',
+    'All Cities': 'அனைத்து நகரங்கள்',
+    'All Years': 'அனைத்து ஆண்டுகள்',
+    'All Events': 'அனைத்து நிகழ்வுகள்',
+    'All Status': 'அனைத்து நிலைகள்',
   };
   if (text.startsWith('Add New') && text.endsWith('Member')) {
     final middle = text.substring('Add New'.length, text.length - 'Member'.length).trim();

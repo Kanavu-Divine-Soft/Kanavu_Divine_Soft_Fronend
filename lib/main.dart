@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:temple_onboarding/presentation/screens/login_screen.dart';
-import 'package:temple_onboarding/presentation/screens/dashboard_screen.dart';
+import 'package:temple_onboarding/presentation/screens/main_layout_screen.dart';
 import 'package:temple_onboarding/presentation/screens/temple_member_details_screen.dart';
 
 void main() async {
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
     if (userData == null) return const LoginScreen();
     
     if (userData!['role'] == 'Super Admin') {
-      return DashboardScreen(userData: userData!);
+      return MainLayoutScreen(userData: userData!);
     } else {
       return const TempleMemberDetailsScreen();
     }

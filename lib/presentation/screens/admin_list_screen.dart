@@ -11,7 +11,8 @@ import 'package:temple_onboarding/presentation/screens/login_screen.dart';
 
 class AdminListScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
-  const AdminListScreen({super.key, required this.userData});
+  final String searchQuery;
+  const AdminListScreen({super.key, required this.userData, this.searchQuery = ''});
 
   @override
   State<AdminListScreen> createState() => _AdminListScreenState();
@@ -21,11 +22,10 @@ class _AdminListScreenState extends State<AdminListScreen> {
   List<dynamic> _admins = [];
   bool _isLoading = true;
   String _error = '';
-  String _searchQuery = '';
   String _selectedTab = 'Active';
 
   List<dynamic> get _filteredAdmins {
-    final query = _searchQuery.trim();
+    final query = widget.searchQuery.trim();
     if (query.isEmpty) return _admins;
     return _admins.where((admin) {
       final name = (admin['name'] ?? '').toString().toLowerCase();
@@ -150,129 +150,14 @@ class _AdminListScreenState extends State<AdminListScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    bool isMobile = MediaQuery.of(context).size.width < 600;
-    
-    Widget searchBar = SizedBox(
-      height: 40,
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search logins...',
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF9CA3AF), size: 20),
-          filled: true,
-          fillColor: const Color(0xFFF3F4F6),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: Color(0xFFE40000))),
-        ),
-        onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
-      ),
-    );
-
-    if (isMobile) {
-      return Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        width: double.infinity,
-        height: 72,
-        child: Row(
-          children: [
-            Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu_rounded, color: Color(0xFF111827), size: 30),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(child: searchBar),
-            const SizedBox(width: 16),
-            const CircleAvatar(
-              backgroundColor: Color(0xFFE40000),
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      width: double.infinity,
-      height: 72,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 0,
-            child: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu_rounded, color: Color(0xFF111827), size: 30),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 400,
-              child: searchBar,
-            ),
-          ),
-          Positioned(
-            right: 0,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.userData['name'] ?? 'User',
-                      style: const TextStyle(
-                        color: Color(0xFF111827),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      widget.userData['role'] ?? 'Member',
-                      style: const TextStyle(
-                        color: Color(0xFF6B7280),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                const CircleAvatar(
-                  backgroundColor: Color(0xFFE40000),
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
-      drawer: _buildDrawer(context),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: _isLoading 
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFE40000)))
-                : _error.isNotEmpty
-                  ? Center(child: Text(_error, style: const TextStyle(color: Color(0xFF111827))))
+    return Container(
+      color: const Color(0xFFF4F6F8),
+      child: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFFE40000)))
+        : _error.isNotEmpty
+          ? Center(child: Text(_error, style: const TextStyle(color: Color(0xFF111827))))
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -388,91 +273,6 @@ class _AdminListScreenState extends State<AdminListScreen> {
                         ],
                       ),
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      backgroundColor: const Color(0xFF1A1A1A),
-      child: Column(
-        children: [
-          UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFE40000), Color(0xFFB30000)],
-              ),
-            ),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, color: Color(0xFFE40000), size: 40),
-            ),
-            accountName: Text(widget.userData['name'] ?? 'User'),
-            accountEmail: null,
-          ),
-          _buildDrawerItem(Icons.dashboard_rounded, 'Dashboard', false, onTap: () {
-            Navigator.pop(context); // Close drawer
-            Navigator.pop(context); // Return to Dashboard
-          }),
-          _buildDrawerItem(Icons.people_rounded, 'Temple', true, onTap: () {
-            Navigator.pop(context); // Just close the drawer, we are already here
-          }),
-          const Spacer(),
-          const Divider(color: Colors.white24),
-          _buildDrawerItem(Icons.logout_rounded, 'Logout', false, onTap: () async {
-            final bool? confirm = await showDialog<bool>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
-                  content: const Text('Are you sure you want to logout?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE40000)),
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Logout', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                );
-              },
-            );
-
-            if (confirm != true) return;
-
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.remove('user_data');
-            
-            if (!context.mounted) return;
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
-          }),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title, bool isSelected, {VoidCallback? onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? const Color(0xFFE40000) : Colors.white60),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isSelected ? const Color(0xFFE40000) : Colors.white,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      onTap: onTap,
     );
   }
 
@@ -832,4 +632,3 @@ class _PaginatedTempleTableState extends State<PaginatedTempleTable> {
     );
   }
 }
-

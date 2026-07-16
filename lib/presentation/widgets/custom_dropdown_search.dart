@@ -717,11 +717,11 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch>
                                   ),
                                 ),
                                 style: TextStyle(
-                                  fontFamily: widget.searchFontFamily ?? widget.itemFonts?[_textEditingController.text] ?? 'Inter', 
+                                  fontFamily: widget.itemFonts?[_textEditingController.text] ?? widget.searchFontFamily ?? 'Inter', 
                                   color: widget.isEnabled
                                       ? Colors.black87
                                       : Colors.grey.shade500,
-                                  fontSize: (widget.searchFontFamily == 'Sun Tommy' || widget.itemFonts?[_textEditingController.text] == 'Sun Tommy') ? 15 : 13,
+                                  fontSize: (widget.itemFonts?[_textEditingController.text] == 'Sun Tommy' || (widget.itemFonts?[_textEditingController.text] == null && widget.searchFontFamily == 'Sun Tommy')) ? 15 : 13,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 onChanged: (val) {

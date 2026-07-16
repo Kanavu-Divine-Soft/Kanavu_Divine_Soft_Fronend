@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:temple_onboarding/presentation/widgets/custom_notification_dialog.dart';
-import 'package:temple_onboarding/presentation/screens/dashboard_screen.dart';
+import 'package:temple_onboarding/presentation/screens/main_layout_screen.dart';
 import 'package:temple_onboarding/presentation/screens/temple_member_details_screen.dart';
 import 'package:temple_onboarding/presentation/screens/forgot_password_screen.dart';
 import 'package:temple_onboarding/core/api_constants.dart';
@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => DashboardScreen(userData: data['user']),
+              builder: (context) => MainLayoutScreen(userData: data['user']),
             ),
           );
         } else {
