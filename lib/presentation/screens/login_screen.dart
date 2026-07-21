@@ -26,6 +26,56 @@ class _LoginScreenState extends State<LoginScreen> {
   
   bool _obscurePassword = true;
   bool _isLoading = false;
+  String _selectedLanguage = 'English';
+
+  final Map<String, Map<String, String>> _translations = {
+    'English': {
+      'title': 'Kanavu Divine Soft',
+      'subtitle': 'Enterprise Management Portal',
+      'signIn': 'Sign In',
+      'signInSubtitle': 'Please enter your credentials to continue',
+      'usernameLabel': 'Username or Email',
+      'passwordLabel': 'Password',
+      'forgotPassword': 'Forgot Password?',
+      'loginBtn': 'LOGIN',
+      'validationError': 'Validation Error',
+      'validationUsername': 'Please enter your username or email.',
+      'validationPassword': 'Please enter your password.',
+      'validationPasswordLength': 'Password must be at least 8 characters.',
+      'loginError': 'Login Error',
+      'loginFailed': 'Login failed',
+      'error': 'Error',
+      'connectionError': 'Connection Error',
+      'connectionErrorMsg': 'Unable to connect to the server. Please ensure the backend server is running and accessible.',
+      'unexpectedError': 'An unexpected error occurred. Please try again.',
+      'hintUsername': 'Enter your Username or Email',
+      'hintPassword': 'Enter your Password',
+    },
+    'Tamil': {
+      'title': 'கனவு டிவைன் சாப்ட்',
+      'subtitle': 'நிறுவன மேலாண்மை போர்டல்',
+      'signIn': 'உள்நுழைக',
+      'signInSubtitle': 'தொடர உங்கள் உள்நுழைவு விவரங்களை உள்ளிடவும்',
+      'usernameLabel': 'பயனர்பெயர் அல்லது மின்னஞ்சல்',
+      'passwordLabel': 'கடவுச்சொல்',
+      'forgotPassword': 'கடவுச்சொல் மறந்துவிட்டதா?',
+      'loginBtn': 'உள்நுழைக',
+      'validationError': 'சரிபார்ப்பு பிழை',
+      'validationUsername': 'உங்கள் பயனர்பெயர் அல்லது மின்னஞ்சலை உள்ளிடவும்.',
+      'validationPassword': 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்.',
+      'validationPasswordLength': 'கடவுச்சொல் குறைந்தது 8 எழுத்துகளைக் கொண்டிருக்க வேண்டும்.',
+      'loginError': 'உள்நுழைவு பிழை',
+      'loginFailed': 'உள்நுழைவு தோல்வியடைந்தது',
+      'error': 'பிழை',
+      'connectionError': 'தொடர்பு பிழை',
+      'connectionErrorMsg': 'சேவையகத்துடன் இணைக்க முடியவில்லை. பின்தள சேவையகம் இயங்குகிறதா என்பதை உறுதிப்படுத்தவும்.',
+      'unexpectedError': 'எதிர்பாராத பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
+      'hintUsername': 'உங்கள் பயனர்பெயர் அல்லது மின்னஞ்சலை உள்ளிடவும்',
+      'hintPassword': 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்',
+    },
+  };
+
+  String _t(String key) => _translations[_selectedLanguage]![key] ?? key;
 
   @override
   void initState() {
@@ -48,8 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (identifier.isEmpty) {
       CustomNotificationDialog.show(
         context,
-        title: 'Validation Error',
-        message: 'Please enter your username or email.',
+        title: _t('validationError'),
+        message: _t('validationUsername'),
         type: NotificationType.error,
       );
       return;
@@ -58,8 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password.isEmpty) {
       CustomNotificationDialog.show(
         context,
-        title: 'Validation Error',
-        message: 'Please enter your password.',
+        title: _t('validationError'),
+        message: _t('validationPassword'),
         type: NotificationType.error,
       );
       return;
@@ -68,8 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password.length < 8) {
       CustomNotificationDialog.show(
         context,
-        title: 'Validation Error',
-        message: 'Password must be at least 8 characters.',
+        title: _t('validationError'),
+        message: _t('validationPasswordLength'),
         type: NotificationType.error,
       );
       return;
@@ -120,8 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         CustomNotificationDialog.show(
           context,
-          title: 'Login Error',
-          message: data['detail'] ?? 'Login failed',
+          title: _t('loginError'),
+          message: data['detail'] ?? _t('loginFailed'),
           type: NotificationType.error,
         );
       }
@@ -129,14 +179,14 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Login Error: $e');
       if (!mounted) return;
       
-      String errorMessage = 'An unexpected error occurred. Please try again.';
-      String errorTitle = 'Error';
+      String errorMessage = _t('unexpectedError');
+      String errorTitle = _t('error');
       
       if (e is http.ClientException || e.toString().contains('Failed to fetch') || e.toString().contains('Connection refused')) {
-        errorTitle = 'Connection Error';
-        errorMessage = 'Unable to connect to the server. Please ensure the backend server is running and accessible.';
+        errorTitle = _t('connectionError');
+        errorMessage = _t('connectionErrorMsg');
       } else {
-        errorMessage = 'An unexpected error occurred: $e';
+        errorMessage = '${_t('error')}: $e';
       }
 
       CustomNotificationDialog.show(
@@ -157,9 +207,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F8), // ERP Light Gray Background
-      body: isDesktop
-          ? Row(
-              children: [
+      body: Stack(
+        children: [
+          isDesktop
+              ? Row(
+                  children: [
                 // Left Panel: Branding
                 Expanded(
                   flex: 5,
@@ -185,23 +237,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          const Text(
-                            'Kanavu Divine Soft',
-                            style: TextStyle(
+                          Text(
+                            _t('title'),
+                            style: const TextStyle(
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               letterSpacing: 1.2,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            'Enterprise Management Portal',
-                            style: TextStyle(
+                          Text(
+                            _t('subtitle'),
+                            style: const TextStyle(
                               fontSize: 18,
                               color: Colors.white70,
                               letterSpacing: 0.5,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -252,13 +306,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const Text(
-                            'Kanavu Divine Soft',
-                            style: TextStyle(
+                          Text(
+                            _t('title'),
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF111827),
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 32),
                           _buildLoginForm(context),
@@ -269,6 +324,60 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
+          Positioned(
+            top: 24,
+            right: 32,
+            child: _buildLanguageSelector(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    final isEnglish = _selectedLanguage == 'English';
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedLanguage = isEnglish ? 'Tamil' : 'English';
+          });
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFD1D5DB)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.language, size: 18, color: Color(0xFFE40000)), // Kanavu Red
+              const SizedBox(width: 8),
+              Text(
+                isEnglish ? 'English' : 'தமிழ் (Tamil)',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.sync_alt, size: 16, color: Color(0xFF9CA3AF)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -282,9 +391,9 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Sign In',
-              style: TextStyle(
+            Text(
+              _t('signIn'),
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF111827), // Dark Gray
@@ -292,9 +401,9 @@ class _LoginScreenState extends State<LoginScreen> {
               textAlign: TextAlign.left,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Please enter your credentials to continue',
-              style: TextStyle(
+            Text(
+              _t('signInSubtitle'),
+              style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF6B7280), // Medium Gray
               ),
@@ -302,7 +411,8 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 40),
             _buildTextField(
               controller: _identifierController,
-              label: 'Username or Email',
+              label: _t('usernameLabel'),
+              hintText: _t('hintUsername'),
               icon: Icons.person_outline_rounded,
               maxLength: 254,
               textInputAction: TextInputAction.next,
@@ -311,7 +421,8 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 20),
             _buildTextField(
               controller: _passwordController,
-              label: 'Password',
+              label: _t('passwordLabel'),
+              hintText: _t('hintPassword'),
               icon: Icons.lock_outline_rounded,
               isPassword: true,
               obscureText: _obscurePassword,
@@ -333,9 +444,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 },
-                child: const Text(
-                  'Forgot Password?',
-                  style: TextStyle(
+                child: Text(
+                  _t('forgotPassword'),
+                  style: const TextStyle(
                     color: Color(0xFFE40000),
                     fontWeight: FontWeight.w600,
                   ),
@@ -364,9 +475,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'LOGIN',
-                        style: TextStyle(
+                    : Text(
+                        _t('loginBtn'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
@@ -384,6 +495,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    String? hintText,
     bool isPassword = false,
     bool obscureText = false,
     int? maxLength,
@@ -411,7 +523,7 @@ class _LoginScreenState extends State<LoginScreen> {
           inputFormatters: maxLength != null ? [LengthLimitingTextInputFormatter(maxLength)] : null,
           style: const TextStyle(color: Color(0xFF111827)),
           decoration: InputDecoration(
-            hintText: 'Enter your $label',
+            hintText: hintText ?? 'Enter your $label',
             hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
             prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF)),
             suffixIcon: isPassword

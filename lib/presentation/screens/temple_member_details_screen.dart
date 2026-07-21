@@ -19,6 +19,9 @@ import 'package:temple_onboarding/core/download_helper.dart' if (dart.library.ht
 import 'package:temple_onboarding/presentation/widgets/custom_dropdown_search.dart';
 import 'package:temple_onboarding/presentation/utils/pdf_receipt_generator.dart';
 import 'package:temple_onboarding/presentation/widgets/stat_card_animated_background.dart';
+import 'package:temple_onboarding/presentation/utils/country_translations.dart';
+import 'package:temple_onboarding/presentation/utils/city_translations.dart';
+import 'package:translator/translator.dart';
 
 class ExpandableYearPill extends StatelessWidget {
   final String yearsStr;
@@ -110,7 +113,8 @@ class ExpandableYearPill extends StatelessWidget {
 class TempleMemberDetailsScreen extends StatefulWidget {
   final String? tableName;
   final String? templeName;
-  const TempleMemberDetailsScreen({super.key, this.tableName, this.templeName});
+  final Map<String, dynamic>? userData;
+  const TempleMemberDetailsScreen({super.key, this.tableName, this.templeName, this.userData});
 
   @override
   State<TempleMemberDetailsScreen> createState() => _TempleMemberDetailsScreenState();
@@ -118,6 +122,7 @@ class TempleMemberDetailsScreen extends StatefulWidget {
 
 class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   bool _isLoading = true;
+  bool _isProfileMenuOpen = false;
   bool _isUploading = false;
   Map<String, dynamic>? _userData;
   List<dynamic> _allMembers = [];
@@ -164,7 +169,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    if (widget.userData != null) {
+      _userData = widget.userData;
+    } else {
+      _loadUserData();
+    }
     _fetchMembers();
   }
 
@@ -284,7 +293,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                 onTap: () => Navigator.pop(context, 'English'),
               ),
               ListTile(
-                title: const Text('Tamil'),
+                title: const Text('தமிழ்'),
                 onTap: () => Navigator.pop(context, 'Tamil'),
               ),
             ],
@@ -597,66 +606,69 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
-      appBar: AppBar(
-        toolbarHeight: 85,
-        leadingWidth: 160,
-        title: LayoutBuilder(
-          builder: (context, constraints) {
-            final bool isMobile = MediaQuery.of(context).size.width < 800;
-            if (isMobile) {
-              return Text(_getTempleName(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
-            }
-            return Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _getTempleName(), 
-                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(85),
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          width: double.infinity,
+          height: 85,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                left: 0,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_userData?['role'] == 'Super Admin')
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFF111827), size: 30),
+                        tooltip: 'Back to Dashboard',
+                        onPressed: () {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, a1, a2) => MainLayoutScreen(userData: _userData!),
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                              ),
+                            );
+                          }
+                        },
+                      )
+                    else
+                      const SizedBox(width: 48),
+                    const SizedBox(width: 16),
+                    Image.asset('assets/images/kanavu-logo-1.png', height: 80, fit: BoxFit.contain),
+                    const SizedBox(width: 16),
+                    Builder(
+                      builder: (context) {
+                        final bool isMobile = MediaQuery.of(context).size.width < 800;
+                        return Text(
+                          _getTempleName(),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: isMobile ? 14 : 18,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+                    ),
+                  ],
                 ),
-              ],
-            );
-          }
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Row(
-          children: [
-            const SizedBox(width: 8),
-            if (_userData?['role'] == 'Super Admin')
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                tooltip: 'Back to Dashboard',
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  } else {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => MainLayoutScreen(userData: _userData!)),
-                    );
-                  }
-                },
-              )
-            else
-              const SizedBox(width: 48),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Image.asset('assets/images/kanavu-logo-1.png', height: 80, fit: BoxFit.contain),
               ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          Builder(
-            builder: (context) {
-              final bool isMobile = MediaQuery.of(context).size.width < 600;
-              if (isMobile) {
-                return Row(
+              Positioned(
+                right: 0,
+                child: Builder(
+                  builder: (context) {
+                    final bool isMobile = MediaQuery.of(context).size.width < 600;
+                    if (isMobile) {
+                      return Row(
                   children: [
                     IconButton(
                       icon: const Icon(Icons.person_add_alt_1, color: Color(0xFFE40000), size: 24),
@@ -679,7 +691,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             } else {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => MainLayoutScreen(userData: _userData!)),
+                                PageRouteBuilder(
+                                  pageBuilder: (context, a1, a2) => MainLayoutScreen(userData: _userData!),
+                                  transitionDuration: Duration.zero,
+                                  reverseTransitionDuration: Duration.zero,
+                                ),
                               );
                             }
                             break;
@@ -712,7 +728,11 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             if (!context.mounted) return;
                             Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              PageRouteBuilder(
+                                pageBuilder: (context, a1, a2) => const LoginScreen(),
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                              ),
                               (route) => false,
                             );
                             break;
@@ -814,14 +834,17 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       highlightColor: Colors.transparent,
                     ),
                     child: PopupMenuButton<String>(
-                          tooltip: '',
+                    tooltip: _isProfileMenuOpen ? 'Hide menu' : 'Show menu',
                           offset: const Offset(0, 56),
                     color: Colors.white,
                     surfaceTintColor: Colors.white,
                     elevation: 4,
                     constraints: const BoxConstraints(minWidth: 160),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    onOpened: () => setState(() => _isProfileMenuOpen = true),
+                    onCanceled: () => setState(() => _isProfileMenuOpen = false),
                     onSelected: (value) async {
+                      setState(() => _isProfileMenuOpen = false);
                       if (value == 'logout') {
                         final bool? confirm = await showDialog<bool>(
                           context: context,
@@ -936,7 +959,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                       ),
                     ],
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -969,19 +992,21 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                             child: Icon(Icons.person, color: Colors.white),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280), size: 20),
+                          Icon(_isProfileMenuOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: const Color(0xFF6B7280), size: 20),
                         ],
                       ),
                     ),
                   ),
                   ),
-                  const SizedBox(width: 16),
                 ],
               );
             }
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
+  ),
+),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -3176,7 +3201,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
-                                                _buildLangPill('Tamil', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
+                                                _buildLangPill('தமிழ்', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -3226,7 +3251,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                                             child: Row(
                                               children: [
                                                 _buildLangPill('English', _dialogLanguage == 'English', _isEditingEnabled ? () => _handleLangChange('English') : null),
-                                                _buildLangPill('Tamil', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
+                                                _buildLangPill('தமிழ்', _dialogLanguage == 'Sun Tommy', _isEditingEnabled ? () => _handleLangChange('Sun Tommy') : null),
                                               ],
                                             ),
                                           ),
@@ -3486,7 +3511,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildLangPill('English', currentLang == 'English', () => onLangChanged('English')),
-            _buildLangPill('Tamil', currentLang == 'Sun Tommy', () => onLangChanged('Sun Tommy')),
+            _buildLangPill('தமிழ்', currentLang == 'Sun Tommy', () => onLangChanged('Sun Tommy')),
           ],
         ),
       ),
@@ -3682,21 +3707,27 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
         ]),
         _buildResponsiveRow(context, [
           _buildDialogDropdown(
-            label: 'Gender',
+            label: _translate('Gender', fontFamily),
             value: sex,
-            items: ['Male', 'Female'],
+            dropdownMap: {
+              'Male': _translate('Male', fontFamily),
+              'Female': _translate('Female', fontFamily),
+            },
             onChanged: isEditable ? onSexChanged : null,
             requiredMark: true,
-            hint: 'Select Gender',
+            hint: _translate('Select Gender', fontFamily),
             validator: (v) => v == null || v.isEmpty ? _translate('Required', fontFamily) : null,
           ),
           _buildDialogDropdown(
-            label: 'VIP Status',
+            label: _translate('VIP Status', fontFamily),
             value: vip,
-            items: ['Yes', 'No'],
+            dropdownMap: {
+              'Yes': _translate('Yes', fontFamily),
+              'No': _translate('No', fontFamily)
+            },
             onChanged: isEditable ? onVipChanged : null,
             requiredMark: true,
-            hint: 'Select VIP Status',
+            hint: _translate('Select VIP Status', fontFamily),
             validator: (v) => v == null || v.isEmpty ? _translate('Required', fontFamily) : null,
           ),
           const SizedBox(), // Empty spacer
@@ -3953,17 +3984,31 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
                     final data = jsonDecode(response.body);
                     if (data is List && data.isNotEmpty && data[0]['Status'] == 'Success') {
                       final postOffice = data[0]['PostOffice'][0];
+                      final postOffices = data[0]['PostOffice'] as List;
+                      final Set<String> cityNames = {};
+                      for (var po in postOffices) {
+                        if (po['Name'] != null) cityNames.add(po['Name'].toString());
+                        if (po['Block'] != null && po['Block'].toString().toUpperCase() != 'NA') {
+                          cityNames.add(po['Block'].toString());
+                        }
+                      }
+                      
+                      // Dynamically translate cities if not in dictionary
+                      final translator = GoogleTranslator();
+                      for (String city in cityNames) {
+                        if (!cityTranslations.containsKey(city) && !dynamicTranslations.containsKey(city)) {
+                          try {
+                            var translation = await translator.translate(city, to: 'ta');
+                            dynamicTranslations[city] = translation.text;
+                          } catch (e) {
+                            // ignore if translation fails
+                          }
+                        }
+                      }
+
                       setDialogState(() {
                         if (availableCities != null) {
                           availableCities.clear();
-                          final postOffices = data[0]['PostOffice'] as List;
-                          final Set<String> cityNames = {};
-                          for (var po in postOffices) {
-                            if (po['Name'] != null) cityNames.add(po['Name'].toString());
-                            if (po['Block'] != null && po['Block'].toString().toUpperCase() != 'NA') {
-                              cityNames.add(po['Block'].toString());
-                            }
-                          }
                           availableCities.addAll(cityNames.toList());
                         }
 
@@ -4320,7 +4365,8 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
   Widget _buildDialogDropdown({
     required String label,
     required String? value,
-    required List<String> items,
+    List<String>? items,
+    Map<String, String>? dropdownMap,
     required ValueChanged<String?>? onChanged,
     FormFieldValidator<String>? validator,
     bool requiredMark = false,
@@ -4330,6 +4376,7 @@ class _TempleMemberDetailsScreenState extends State<TempleMemberDetailsScreen> {
       label: label,
       value: value,
       dropdownItems: items,
+      dropdownMap: dropdownMap,
       onChanged: onChanged,
       validator: validator,
       requiredMark: requiredMark,
@@ -5634,7 +5681,7 @@ class _CustomCountrySelectFieldState extends State<CustomCountrySelectField> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _selectedCountry.name,
+                        _translate(_selectedCountry.name, widget.fontFamily),
                         style: TextStyle(
                           color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                           fontSize: 15,
@@ -5769,42 +5816,42 @@ class _CountryDropdownPanelState extends State<_CountryDropdownPanel> {
                         child: ListView.builder(
                           controller: _scrollController,
                           padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        itemCount: _filtered.length,
-                        itemBuilder: (ctx, i) {
-                          final c = _filtered[i];
-                          final isSelected = c.code == widget.initialCountry.code;
-                          return InkWell(
-                            onTap: () => widget.onSelect(c),
-                            child: Container(
-                              color: isSelected
-                                  ? const Color(0xFFFFF5F5)
-                                  : Colors.transparent,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Text(c.flag, style: const TextStyle(fontSize: 22)),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      c.name,
-                                      style: TextStyle(
-                                        color: isSelected ? const Color(0xFF8B0000) : const Color(0xFF1E293B), 
-                                        fontSize: 14,
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          shrinkWrap: true,
+                          itemCount: _filtered.length,
+                          itemBuilder: (ctx, i) {
+                            final c = _filtered[i];
+                            final isSelected = c.code == widget.initialCountry.code;
+                            return InkWell(
+                              onTap: () => widget.onSelect(c),
+                              child: Container(
+                                color: isSelected
+                                    ? const Color(0xFFFFF5F5)
+                                    : Colors.transparent,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
+                                    Text(c.flag, style: const TextStyle(fontSize: 22)),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _translate(c.name, widget.fontFamily),
+                                        style: TextStyle(
+                                          color: isSelected ? const Color(0xFF8B0000) : const Color(0xFF1E293B), 
+                                          fontSize: 14,
+                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                  Text(
-                                    '+${c.dialCode}',
-                                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                                  ),
-                                ],
+                                    Text(
+                                      '+${c.dialCode}',
+                                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
                       ),
                     ),
                   ),
@@ -6066,6 +6113,8 @@ class _MultiYearDropdownFieldState extends State<_MultiYearDropdownField> {
 }
 
 
+final Map<String, String> dynamicTranslations = {};
+
 String _translate(String text, String? fontFamily) {
   if (fontFamily != 'Sun Tommy') return text;
   final Map<String, String> translations = {
@@ -6075,10 +6124,12 @@ String _translate(String text, String? fontFamily) {
     'Full Name *': 'முழு பெயர் *',
     "Father's Name": 'தந்தை பெயர்',
     'Gender': 'பாலினம்',
+    'Select Gender': 'பாலினத்தைத் தேர்ந்தெடுக்கவும்',
     'Male': 'ஆண்',
     'Female': 'பெண்',
     'Other': 'மற்றவை',
-    'VIP Status': 'விஐபி அந்தஸ்து',
+    'VIP Status': 'விஐபி நிலை',
+    'Select VIP Status': 'விஐபி நிலையைத் தேர்ந்தெடுக்கவும்',
     'Yes': 'ஆம்',
     'No': 'இல்லை',
     'Contact Information': 'தொடர்புத் தகவல்',
@@ -6097,10 +6148,56 @@ String _translate(String text, String? fontFamily) {
     'Address Line 3': 'முகவரி வரி 3',
     'Address Line 4': 'முகவரி வரி 4',
     'City': 'நகரம்',
+    'City *': 'நகரம் *',
+    'Select City': 'நகரத்தைத் தேர்ந்தெடு',
     'District': 'மாவட்டம்',
+    'District *': 'மாவட்டம் *',
+    'Select District': 'மாவட்டத்தைத் தேர்ந்தெடு',
     'State': 'மாநிலம்',
+    'State *': 'மாநிலம் *',
+    'Select State': 'மாநிலத்தைத் தேர்ந்தெடு',
     'Country': 'நாடு',
+    'Country *': 'நாடு *',
+    'Select Country': 'நாட்டைத் தேர்ந்தெடு',
     'PinCode': 'அஞ்சல் குறியீடு',
+    'Ariyalur': 'அரியலூர்',
+    'Chengalpattu': 'செங்கல்பட்டு',
+    'Chennai': 'சென்னை',
+    'Coimbatore': 'கோயம்புத்தூர்',
+    'Cuddalore': 'கடலூர்',
+    'Dharmapuri': 'தருமபுரி',
+    'Dindigul': 'திண்டுக்கல்',
+    'Erode': 'ஈரோடு',
+    'Kallakurichi': 'கள்ளக்குறிச்சி',
+    'Kanchipuram': 'காஞ்சிபுரம்',
+    'Kanyakumari': 'கன்னியாகுமரி',
+    'Karur': 'கரூர்',
+    'Krishnagiri': 'கிருஷ்ணகிரி',
+    'Madurai': 'மதுரை',
+    'Mayiladuthurai': 'மயிலாடுதுறை',
+    'Nagapattinam': 'நாகப்பட்டினம்',
+    'Namakkal': 'நாமக்கல்',
+    'Nilgiris': 'நீலகிரி',
+    'Perambalur': 'பெரம்பலூர்',
+    'Pudukkottai': 'புதுக்கோட்டை',
+    'Ramanathapuram': 'இராமநாதபுரம்',
+    'Ranipet': 'இராணிப்பேட்டை',
+    'Salem': 'சேலம்',
+    'Sivaganga': 'சிவகங்கை',
+    'Tenkasi': 'தென்காசி',
+    'Thanjavur': 'தஞ்சாவூர்',
+    'Theni': 'தேனி',
+    'Thoothukudi': 'தூத்துக்குடி',
+    'Tiruchirappalli': 'திருச்சிராப்பள்ளி',
+    'Tirunelveli': 'திருநெல்வேலி',
+    'Tirupathur': 'திருப்பத்தூர்',
+    'Tiruppur': 'திருப்பூர்',
+    'Tiruvallur': 'திருவள்ளூர்',
+    'Tiruvannamalai': 'திருவண்ணாமலை',
+    'Tiruvarur': 'திருவாரூர்',
+    'Vellore': 'வேலூர்',
+    'Viluppuram': 'விழுப்புரம்',
+    'Virudhunagar': 'விருதுநகர்',
     'Events': 'நிகழ்வுகள்',
     'Add Event': 'நிகழ்வைச் சேர்',
     'Event Name': 'நிகழ்வின் பெயர்',
@@ -6113,6 +6210,36 @@ String _translate(String text, String? fontFamily) {
     'Andhra Pradesh': 'ஆந்திரப் பிரதேசம்',
     'Telangana': 'தெலுங்கானா',
     'Puducherry': 'புதுச்சேரி',
+    'Andaman and Nicobar Islands': 'அந்தமான் நிக்கோபார் தீவுகள்',
+    'Arunachal Pradesh': 'அருணாச்சலப் பிரதேசம்',
+    'Assam': 'அசாம்',
+    'Bihar': 'பீகார்',
+    'Chandigarh': 'சண்டிகர்',
+    'Chhattisgarh': 'சத்தீஸ்கர்',
+    'Dadra and Nagar Haveli and Daman and Diu': 'தாத்ரா மற்றும் நகர் ஹவேலி மற்றும் டாமன் மற்றும் டையூ',
+    'Delhi': 'டெல்லி',
+    'Goa': 'கோவா',
+    'Gujarat': 'குஜராத்',
+    'Haryana': 'ஹரியானா',
+    'Himachal Pradesh': 'இமாச்சலப் பிரதேசம்',
+    'Jammu and Kashmir': 'ஜம்மு மற்றும் காஷ்மீர்',
+    'Jharkhand': 'ஜார்கண்ட்',
+    'Ladakh': 'லடாக்',
+    'Lakshadweep': 'லட்சத்தீவுகள்',
+    'Madhya Pradesh': 'மத்தியப் பிரதேசம்',
+    'Maharashtra': 'மகாராஷ்டிரா',
+    'Manipur': 'மணிப்பூர்',
+    'Meghalaya': 'மேகாலயா',
+    'Mizoram': 'மிசோரம்',
+    'Nagaland': 'நாகாலாந்து',
+    'Odisha': 'ஒடிசா',
+    'Punjab': 'பஞ்சாப்',
+    'Rajasthan': 'ராஜஸ்தான்',
+    'Sikkim': 'சிக்கிம்',
+    'Tripura': 'திரிபுரா',
+    'Uttar Pradesh': 'உத்தரப் பிரதேசம்',
+    'Uttarakhand': 'உத்தரகண்ட்',
+    'West Bengal': 'மேற்கு வங்கம்',
     'Payment Status': 'கட்டண நிலை',
     'Select Status': 'நிலையைத் தேர்ந்தெடு',
     'Please fill the current event details before adding a new one.': 'புதிய நிகழ்வைச் சேர்ப்பதற்கு முன் தற்போதைய நிகழ்வு விவரங்களை நிரப்பவும்.',
@@ -6124,6 +6251,7 @@ String _translate(String text, String? fontFamily) {
     'Please enter a valid email': 'சரியான மின்னஞ்சலை உள்ளிடவும்',
     'Search state...': 'மாநிலத்தைத் தேடு...',
     'Search country or code...': 'நாடு அல்லது குறியீட்டைத் தேடு...',
+    'Search city...': 'நகரத்தைத் தேடு...',
     'Select State': 'மாநிலத்தைத் தேர்ந்தெடு',
     'Remove': 'நீக்கு',
     'From Date': 'தொடக்க தேதி',
@@ -6153,6 +6281,20 @@ String _translate(String text, String? fontFamily) {
     'All Events': 'அனைத்து நிகழ்வுகள்',
     'All Status': 'அனைத்து நிலைகள்',
   };
+  
+  if (translations.containsKey(text)) {
+    return translations[text]!;
+  }
+  if (dynamicTranslations.containsKey(text)) {
+    return dynamicTranslations[text]!;
+  }
+  if (countryTranslations.containsKey(text)) {
+    return countryTranslations[text]!;
+  }
+  if (cityTranslations.containsKey(text)) {
+    return cityTranslations[text]!;
+  }
+
   if (text.startsWith('Add New') && text.endsWith('Member')) {
     final middle = text.substring('Add New'.length, text.length - 'Member'.length).trim();
     return middle.isEmpty ? 'புதிய உறுப்பினரைச் சேர்' : 'புதிய ${middle} உறுப்பினரைச் சேர்';
@@ -6405,7 +6547,7 @@ class _CustomStateSelectFieldState extends State<CustomStateSelectField> {
                       child: _isLoading 
                         ? const SizedBox(height: 15, width: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE40000)))
                         : Text(
-                            _selectedState,
+                            _translate(_selectedState, widget.fontFamily),
                             style: TextStyle(
                               color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                               fontSize: 15,
@@ -6525,7 +6667,7 @@ class _StateDropdownPanelState extends State<_StateDropdownPanel> {
                     children: [
                       Expanded(
                         child: Text(
-                          s,
+                          _translate(s, widget.fontFamily),
                           style: TextStyle(
                             fontSize: 14,
                             color: isSelected ? const Color(0xFFE40000) : const Color(0xFF1E293B),
@@ -6935,7 +7077,7 @@ class _CustomDistrictSelectFieldState extends State<CustomDistrictSelectField> {
                       child: _isLoading 
                         ? const SizedBox(height: 15, width: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE40000)))
                         : Text(
-                            _selectedDistrict.isEmpty ? 'Select District' : _selectedDistrict,
+                            _translate(_selectedDistrict.isEmpty ? 'Select District' : _selectedDistrict, widget.fontFamily),
                             style: TextStyle(
                               color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                               fontSize: 15,
@@ -7075,7 +7217,7 @@ class _CustomCitySelectFieldState extends State<CustomCitySelectField> {
                               controller: _searchController,
                               autofocus: true,
                               decoration: InputDecoration(
-                                hintText: 'Search city...',
+                                hintText: _translate('Search city...', widget.fontFamily),
                                 hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                                 prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
                                 filled: true,
@@ -7117,7 +7259,7 @@ class _CustomCitySelectFieldState extends State<CustomCitySelectField> {
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                           child: Text(
-                                            city,
+                                            _translate(city, widget.fontFamily),
                                             style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
                                           ),
                                         ),
@@ -7180,7 +7322,7 @@ class _CustomCitySelectFieldState extends State<CustomCitySelectField> {
           decoration: InputDecoration(
             label: Text.rich(
               TextSpan(
-                text: 'City',
+                text: _translate('City', widget.fontFamily),
                 children: const [
                   TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
                 ],
@@ -7217,7 +7359,7 @@ class _CustomCitySelectFieldState extends State<CustomCitySelectField> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _selectedCity,
+                        _translate(_selectedCity, widget.fontFamily),
                         style: TextStyle(
                           color: widget.enabled ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                           fontSize: 15,

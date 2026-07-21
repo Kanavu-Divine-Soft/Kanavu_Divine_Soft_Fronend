@@ -14,8 +14,9 @@ import 'package:temple_onboarding/presentation/widgets/stat_card_animated_backgr
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
   final String searchQuery;
+  final String language;
 
-  const DashboardScreen({super.key, required this.userData, this.searchQuery = ''});
+  const DashboardScreen({super.key, required this.userData, this.searchQuery = '', this.language = 'English'});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -27,6 +28,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _error = '';
   bool _isGridView = true;
   String _selectedStatusFilter = 'All';
+
+  final Map<String, Map<String, String>> _translations = {
+    'English': {
+      'welcome': 'Welcome to the Temple Portal',
+      'overview': 'Temple Status Overview',
+      'total': 'Total Temples',
+      'active': 'Active Temples',
+      'inactive': 'Inactive Temples',
+      'noTables': 'No member tables found.',
+      'noSearch': 'No temples match your search.',
+      'addTemple': 'Add Temple',
+      'templeName': 'Temple Name',
+      'onboardDate': 'Onboard Date',
+      'status': 'Status',
+      'action': 'Action',
+      'open': 'Open',
+    },
+    'Tamil': {
+      'welcome': 'கோவில் போர்ட்டலுக்கு வரவேற்கிறோம்',
+      'overview': 'கோவில் நிலை மேலோட்டம்',
+      'total': 'மொத்த கோவில்கள்',
+      'active': 'செயலில் உள்ள கோவில்கள்',
+      'inactive': 'செயலற்ற கோவில்கள்',
+      'noTables': 'உறுப்பினர் அட்டவணைகள் எதுவும் காணப்படவில்லை.',
+      'noSearch': 'உங்கள் தேடலுக்கு எந்த கோவில்களும் பொருந்தவில்லை.',
+      'addTemple': 'கோவில் சேர்',
+      'templeName': 'கோவிலின் பெயர்',
+      'onboardDate': 'சேர்க்கப்பட்ட தேதி',
+      'status': 'நிலை',
+      'action': 'செயல்',
+      'open': 'திறக்க',
+    }
+  };
+
+  String _t(String key) => _translations[widget.language]?[key] ?? key;
 
   List<Map<String, dynamic>> get _searchFilteredTables {
     final query = widget.searchQuery.trim();
@@ -106,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Welcome to the Temple Portal',
+                                                _t('welcome'),
                                                 style: TextStyle(
                                                   color: const Color(0xFF111827),
                                                   fontSize: MediaQuery.of(context).size.width < 600 ? 24 : 32,
@@ -128,22 +164,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 
                                 if (_tables.isEmpty)
-                                  const Center(
+                                  Center(
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 40),
+                                      padding: const EdgeInsets.symmetric(vertical: 40),
                                       child: Text(
-                                        'No member tables found.',
-                                        style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
+                                        _t('noTables'),
+                                        style: const TextStyle(color: Color(0xFF6B7280), fontSize: 16),
                                       ),
                                     ),
                                   )
                                 else if (_filteredTables.isEmpty)
-                                  const Center(
+                                  Center(
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 40),
+                                      padding: const EdgeInsets.symmetric(vertical: 40),
                                       child: Text(
-                                        'No temples match your search.',
-                                        style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
+                                        _t('noSearch'),
+                                        style: const TextStyle(color: Color(0xFF6B7280), fontSize: 16),
                                       ),
                                     ),
                                   )
@@ -232,26 +268,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Temple Status Overview', style: TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(_t('overview'), style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
           isMobile 
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All'),
+                  _buildStatCard(_t('total'), total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All'),
                   const SizedBox(height: 16),
-                  _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active'),
+                  _buildStatCard(_t('active'), activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active'),
                   const SizedBox(height: 16),
-                  _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive'),
+                  _buildStatCard(_t('inactive'), inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive'),
                 ],
               )
             : Row(
                 children: [
-                  Expanded(child: _buildStatCard('Total Temples', total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All')),
+                  Expanded(child: _buildStatCard(_t('total'), total.toString(), Icons.domain, const Color(0xFF60A5FA), const Color(0xFF2563EB), onTap: () => setState(() => _selectedStatusFilter = 'All'), isSelected: _selectedStatusFilter == 'All')),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildStatCard('Active Temples', activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active')),
+                  Expanded(child: _buildStatCard(_t('active'), activeCount.toString(), Icons.check_circle_rounded, const Color(0xFF34D399), const Color(0xFF059669), onTap: () => setState(() => _selectedStatusFilter = 'Active'), isSelected: _selectedStatusFilter == 'Active')),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildStatCard('Inactive Temples', inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive')),
+                  Expanded(child: _buildStatCard(_t('inactive'), inactiveCount.toString(), Icons.cancel_rounded, const Color(0xFFFB7185), const Color(0xFFE11D48), onTap: () => setState(() => _selectedStatusFilter = 'Inactive'), isSelected: _selectedStatusFilter == 'Inactive')),
                 ],
               ),
         ],
@@ -360,7 +396,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
             },
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('Add Temple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            label: Text(_t('addTemple'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE40000),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -414,7 +450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             runSpacing: 16,
             spacing: 16,
             children: [
-              Text('Active Temples (${activeTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('${_t('active')} (${activeTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
               _buildRightActions(),
             ],
           ),
@@ -442,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             runSpacing: 16,
             spacing: 16,
             children: [
-              Text('Inactive Temples (${inactiveTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('${_t('inactive')} (${inactiveTables.length})', style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)),
               if (activeTables.isEmpty) _buildRightActions(),
             ],
           ),
@@ -480,7 +516,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             spacing: 16,
             children: [
               Text(
-                'Active Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').length})', 
+                '${_t('active')} (${_filteredTables.where((t) => (t['status'] ?? 'Active') == 'Active').length})', 
                 style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)
               ),
               _buildRightActions(),
@@ -511,23 +547,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text('Temple Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(_t('templeName'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                               Expanded(
                                 flex: 2,
-                                child: Text('Onboard Date', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(_t('onboardDate'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                               Expanded(
                                 flex: 2,
-                                child: Text('Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(_t('status'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                               Expanded(
                                 flex: 2,
-                                child: Text('Action', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.right),
+                                child: Text(_t('action'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.right),
                               ),
                             ],
                           ),
@@ -542,7 +578,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8, bottom: 16, top: 24),
                             child: Text(
-                              'Inactive Temples (${_filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').length})', 
+                              '${_t('inactive')} (${_filteredTables.where((t) => (t['status'] ?? 'Active') != 'Active').length})', 
                               style: const TextStyle(color: Color(0xFF111827), fontSize: 20, fontWeight: FontWeight.bold)
                             ),
                           ),
@@ -604,11 +640,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => TempleMemberDetailsScreen(
+              PageRouteBuilder(
+                pageBuilder: (context, animation1, animation2) => TempleMemberDetailsScreen(
                   tableName: table,
                   templeName: displayTitle,
+                  userData: widget.userData,
                 ),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
               ),
             );
           },
@@ -695,11 +734,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => TempleMemberDetailsScreen(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation1, animation2) => TempleMemberDetailsScreen(
                             tableName: table,
                             templeName: displayTitle,
+                            userData: widget.userData,
                           ),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
                         ),
                       );
                     },
@@ -713,12 +755,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       elevation: 0,
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Open', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14),
+                        Text(_t('open'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward_rounded, size: 14),
                       ],
                     ),
                   ),
@@ -780,11 +822,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => TempleMemberDetailsScreen(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation1, animation2) => TempleMemberDetailsScreen(
                           tableName: table,
                           templeName: displayTitle,
+                          userData: widget.userData,
                         ),
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero,
                       ),
                     );
                   },
